@@ -1,14 +1,36 @@
+import { Routes, Route, useLocation } from "react-router-dom";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Profile from "./pages/Profile";
+import Navbar from "./components/NavbarComponent";
+import RequireAuth from "./components/RequireAuthComponent";
+
 function App() {
+  const location = useLocation();
+
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-      <h1 className="text-4xl font-bold text-blue-600 mb-4">
-        Benvenuto nel Sito-Negozio
-      </h1>
-      <button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">
-        Prova Tailwind
-      </button>
+    <div className="min-h-screen bg-gradient-to-br from-[#3b2f2f] via-[#7a5230] to-[#b7874a]">
+      {/* Navbar separata */}
+      <Navbar location={location} />
+
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
+          {/* PRIVATE ROUTES */}
+          <Route
+            path="/profile"
+            element={
+              <RequireAuth>
+                <Profile />
+              </RequireAuth>
+            }
+          />
+        </Routes>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
