@@ -26,7 +26,7 @@ export default function CarouselComponent() {
   }, []);
 
   if (loading) {
-    return <div className="text-center text-lg">Caricamento...</div>;
+    return <div className="text-center text-lg py-10">Caricamento...</div>;
   }
 
   return (
@@ -41,17 +41,25 @@ export default function CarouselComponent() {
       }}
       navigation
       pagination={{ clickable: true }}
-      autoplay={{ delay: 2500 }}
-      className="pb-20"
+      autoplay={{ delay: 3500 }}
+      className="pb-12"
     >
       {events.map((event) => (
         <SwiperSlide key={event._id}>
-          <div className="bg-[#3b2f2f] text-[#f3e6d8] rounded-lg overflow-hidden shadow-lg">
-            <img src={event.img} alt={event.name} className="w-full h-48 object-cover border-black border-2 border-b-0" />
-            <div className="p-4 border-black border-2 border-t-1">
-              <h3 className="text-xl font-bold mb-2">{event.name}</h3>
-              <p className="text-sm mb-2">{new Date(event.date).toLocaleDateString()}</p>
-              <p className="text-sm">{event.desc}</p>
+          <div className="bg-orange-900 text-center text-black rounded-xl shadow-md flex flex-col h-[360px] w-full max-w-xs mx-auto">
+            <img
+              src={event.img}
+              alt={event.name}
+              className="h-36 w-full object-cover rounded-t-xl"
+            />
+            <div className="flex-1 flex flex-col p-4">
+              <h3 className="font-bold text-lg mb-1">{event.name}</h3>
+              <p className="text-gray-400 text-sm mb-2">
+                {new Date(event.date).toLocaleDateString()}
+              </p>
+              <div className="text-sm text-black overflow-y-auto flex-1 max-h-[100px] pr-1 custom-scrollbar-card">
+                {event.description || event.desc}
+              </div>
             </div>
           </div>
         </SwiperSlide>

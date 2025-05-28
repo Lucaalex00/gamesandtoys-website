@@ -1,16 +1,31 @@
 import express from "express";
-import Event from "../models/eventModel.js";
+import protect from "../middleware/authMiddleware.js";
+import {
+  getAllEvents,
+  updateEvent,
+  addUserToEvent,
+  assignPoints,
+  incrementPoints,
+  decrementPoints,
+} from "../controllers/eventController.js";
 
 const router = express.Router();
 
-// GET /api/events
-router.get("/", async (req, res) => {
-  try {
-    const events = await Event.find().sort({ date: 1 });
-    res.json(events);
-  } catch (error) {
-    res.status(500).json({ message: "Errore nel recupero degli eventi" });
-  }
-});
+router.get("/", getAllEvents);
+router.put("/:id", updateEvent);
+
+// Rotte extra admin
+router.post("/:eventId/add-user", addUserToEvent);
+router.put("/assign-points", assignPoints);
+router.put(
+  "/:eventId/participants/:userId/increment",
+  protect,
+  incrementPoints
+);
+router.put(
+  "/:eventId/participants/:userId/decrement",
+  protect,
+  decrementPoints
+);
 
 export default router;

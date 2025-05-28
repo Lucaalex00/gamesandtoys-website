@@ -3,4 +3,10 @@
 @import 'swiper/css';
 @import 'swiper/css/navigation';
 @import 'swiper/css/pagination';
+*{
+    scrollbar-width: thin;
+    .custom-scrollbar-card{
+        scrollbar-color: black transparent;
+    }
 
+}

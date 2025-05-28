@@ -2,8 +2,8 @@ import jwt from "jsonwebtoken";
 import User from "../models/userModel.js";
 
 // Funzione per generare JWT
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+const generateToken = (id, category) => {
+  return jwt.sign({ id, category }, process.env.JWT_SECRET, {
     expiresIn: "24h",
   });
 };
@@ -38,7 +38,8 @@ export const registerUser = async (req, res) => {
     res.status(201).json({
       _id: user._id,
       email: user.email,
-      token: generateToken(user._id),
+      category: user.category,
+      token: generateToken(user._id, user.category),
     });
   } catch (err) {
     console.error("Errore registrazione:", err);
@@ -59,7 +60,8 @@ export const loginUser = async (req, res) => {
     res.status(200).json({
       _id: user._id,
       email: user.email,
-      token: generateToken(user._id),
+      category: user.category,
+      token: generateToken(user._id, user.category),
     });
   } catch (err) {
     console.error("Errore login:", err);

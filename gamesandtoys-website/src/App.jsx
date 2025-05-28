@@ -3,6 +3,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
+import Events from "./pages/Events";
 import Navbar from "./components/NavbarComponent";
 import RequireAuth from "./components/RequireAuthComponent";
 
@@ -25,6 +26,14 @@ function App() {
             element={
               <RequireAuth>
                 <Profile />
+              </RequireAuth>
+            }
+        />
+        <Route
+            path="/events"
+            element={
+              <RequireAuth>
+                <Events />
               </RequireAuth>
             }
           />

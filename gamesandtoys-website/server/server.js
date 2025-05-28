@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import eventsRoutes from "./routes/eventRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use(express.json());
 // Rotte
 app.use("/api/events", eventsRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 
 // Connessione DB + Avvio server
 const PORT = process.env.PORT || 5000;
