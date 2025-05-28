@@ -11,7 +11,7 @@ function App() {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#3b2f2f] via-[#7a5230] to-[#b7874a]">
+    <div className="min-h-screen">
       {/* Navbar separata */}
       <Navbar location={location} />
 
@@ -29,7 +29,7 @@ function App() {
               </RequireAuth>
             }
         />
-        <Route
+          <Route
             path="/events"
             element={
               <RequireAuth>

@@ -2,6 +2,12 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    trim: true,
+    required: true,
+    default: "", // opzionale
+  },
   email: {
     type: String,
     required: true,
@@ -18,6 +24,7 @@ const userSchema = new mongoose.Schema({
     enum: ["user", "admin"],
     default: "user", // default per chi si registra
   },
+  credito: { type: Number, default: 0 }, // campo credito aggiunto
 });
 
 // Cifra la password prima di salvare

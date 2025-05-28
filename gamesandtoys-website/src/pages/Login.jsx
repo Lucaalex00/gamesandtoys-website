@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { login } from "../store/slices/authSlice";
 import { useNavigate, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -24,7 +25,6 @@ export default function Login() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Errore nel login");
       dispatch(login(data.token));
-      // Dopo il login con successo:
       navigate(from);
     } catch (err) {
       setError(err.message);
@@ -32,12 +32,15 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-transparent text-white">
-      <form
+    <div className="min-h-screen flex items-center justify-center px-4 bg-[#0d0d0d] text-white">
+      <motion.form
         onSubmit={handleLogin}
-        className="bg-black p-8 rounded shadow-md w-full max-w-md"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-gray-900 p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-700"
       >
-        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+        <h2 className="text-2xl font-bold text-center mb-6 tracking-tight">Login</h2>
         {error && (
           <div className="mb-4 text-red-400 text-center">{error}</div>
         )}
@@ -47,7 +50,7 @@ export default function Login() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="w-full mb-4 p-2 rounded bg-gray-700 border border-gray-600"
+          className="w-full mb-4 p-2 rounded bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
         />
         <input
           type="password"
@@ -55,15 +58,15 @@ export default function Login() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="w-full mb-6 p-2 rounded bg-gray-700 border border-gray-600"
+          className="w-full mb-6 p-2 rounded bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
         />
         <button
           type="submit"
-          className="w-full bg-orange-600 hover:bg-orange-700 py-2 rounded font-semibold"
+          className="w-full bg-orange-600 hover:bg-orange-700 py-2 rounded font-semibold transition"
         >
           Accedi
         </button>
-      </form>
+      </motion.form>
     </div>
   );
 }

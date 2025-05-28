@@ -2,8 +2,8 @@ import jwt from "jsonwebtoken";
 import User from "../models/userModel.js";
 
 // Funzione per generare JWT
-const generateToken = (id, category) => {
-  return jwt.sign({ id, category }, process.env.JWT_SECRET, {
+const generateToken = (id, category, name, credito) => {
+  return jwt.sign({ id, category, name, credito }, process.env.JWT_SECRET, {
     expiresIn: "24h",
   });
 };
@@ -25,7 +25,7 @@ export const getUserData = async (req, res) => {
 
 // REGISTRAZIONE
 export const registerUser = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, name, credito } = req.body;
 
   try {
     const userExists = await User.findOne({ email });
@@ -33,13 +33,21 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: "Utente già registrato" });
     }
 
-    const user = await User.create({ email, password, category: "user" });
+    const user = await User.create({
+      email,
+      password,
+      name,
+      category: "user",
+      credito,
+    });
 
     res.status(201).json({
       _id: user._id,
+      name: user.name,
       email: user.email,
       category: user.category,
-      token: generateToken(user._id, user.category),
+      credito: user.credito,
+      token: generateToken(user._id, user.category, user.name, user.credito),
     });
   } catch (err) {
     console.error("Errore registrazione:", err);
@@ -60,8 +68,10 @@ export const loginUser = async (req, res) => {
     res.status(200).json({
       _id: user._id,
       email: user.email,
+      name: user.name,
       category: user.category,
-      token: generateToken(user._id, user.category),
+      credito: user.credito,
+      token: generateToken(user._id, user.category, user.name, user.credito),
     });
   } catch (err) {
     console.error("Errore login:", err);
