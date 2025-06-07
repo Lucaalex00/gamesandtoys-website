@@ -92,19 +92,14 @@ export default function Events() {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
+  
+      // Usa i dati aggiornati direttamente dalla risposta
       setEvents((prevEvents) =>
         prevEvents.map((ev) =>
-          ev._id === eventId
-            ? {
-                ...ev,
-                desc: newDesc,
-                participants: participantIds.map((userId) => ({ userId })),
-              }
-            : ev
+          ev._id === eventId ? response.data.updatedEvent : ev
         )
       );
-
+  
       setSuccessMessage(response.data.message || "Evento aggiornato!");
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {

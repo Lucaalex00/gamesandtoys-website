@@ -102,7 +102,9 @@ export default function EventCard({
                             -1
                             </button>
                         )}
-                        <span className="font-mono text-lg">{p.points}</span>
+                        <span className="font-mono text-lg min-w-[2ch] text-center inline-block">
+                          {typeof p.points === "number" ? p.points : 0}
+                        </span>
                         {userCategory === "admin" && (
                             <button
                             onClick={() => onUpdatePoints(event._id, p.userId, +1)}

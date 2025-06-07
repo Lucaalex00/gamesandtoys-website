@@ -35,23 +35,29 @@ const Navbar = () => {
     >
       <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-4 sm:py-5">
         {/* Logo */}
-        <Link to="/" className="w-32">
+        <Link to="/" className="w-32" onClick={() => {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}>
           <img
-            src="https://via.placeholder.com/150x40?text=Logo"
+            src="/public/logo_roberto.png"
             alt="Logo"
-            className="object-contain w-full h-auto transition-opacity duration-700 opacity-90 hover:opacity-100"
+            className=" w-16 h-auto transition-opacity duration-500 opacity-60 hover:opacity-100"
+            
           />
         </Link>
 
         {/* Nav Links */}
-        <div className="flex space-x-12 w-full">
+        <div className="flex md:space-x-18 sm:space-x-12 space-x-4 w-full">
           {navLinks.map(({ path, label }) => {
             const isActive = location.pathname === path;
             return (
               <div key={path} className="relative group overflow-visible">
                 <Link
-                  to={path}
-                  className={`font-semibold text-lg transition-colors duration-300
+                  to={path} onClick={() => {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className={`font-semibold sm:text-lg transition-colors text-md duration-300
+                    
                     ${
                       isActive
                         ? 'text-[#d9822b]'
@@ -70,15 +76,18 @@ const Navbar = () => {
         </div>
 
         {/* Auth buttons */}
-        <div className="flex space-x-8 w-1/3 justify-end items-center">
+        <div className="flex md:space-x-8 space-x-2 w-1/3 justify-end items-center">
           {isAuthenticated ? (
             <>
-              <Link to="/profile" className="font-semibold text-[#d9822b]">
+              <Link to="/profile" onClick={() => {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }} className="font-semibold text-[#d9822b]">
                 {userName || "Profilo" } 
               </Link>
               <button
                 onClick={handleLogout}
-                className="font-semibold text-red-500 hover:text-red-600 transition-transform duration-300 hover:scale-110 hover:-translate-x-1"
+                className="font-semibold cursor-pointer text-red-500 hover:text-red-600 duration-300 
+                hover:scale-105"
               >
                 Logout
               </button>

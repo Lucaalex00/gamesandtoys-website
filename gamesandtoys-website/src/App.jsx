@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import Events from "./pages/Events";
+import Info from "./pages/Info";
 import Navbar from "./components/NavbarComponent";
 import RequireAuth from "./components/RequireAuthComponent";
 
@@ -19,6 +20,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/info" element={<Info />} />
 
           {/* PRIVATE ROUTES */}
           <Route

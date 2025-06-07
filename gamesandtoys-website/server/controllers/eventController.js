@@ -30,10 +30,17 @@ export const updateEvent = async (req, res) => {
 
     // aggiorna i partecipanti se forniti
     if (Array.isArray(req.body.participants)) {
-      // inizializza tutti con 0 punti se non già presente
+      const existing = event.participants || [];
+
+      // Crea una mappa esistenti per accesso rapido
+      const existingMap = new Map(
+        existing.map((p) => [p.userId.toString(), p.points])
+      );
+
+      // Nuova lista con merge
       event.participants = req.body.participants.map((p) => ({
         userId: p.userId,
-        points: 0,
+        points: existingMap.get(p.userId.toString()) ?? 0,
       }));
     }
 
