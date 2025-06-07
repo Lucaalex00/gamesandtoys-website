@@ -1,22 +1,20 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
-import tailwindcss from "@tailwindcss/vite";
+import path from "path";
 
-// https://vite.dev/config/
 export default defineConfig({
-  root: "./src", // 👈 dice a Vite che src/ è la root del frontend
+  root: path.resolve(__dirname, "src"), // Qui dici che la root del frontend è 'src'
   build: {
-    outDir: "../dist", // 👈 genera dist/ nella root del progetto
-    emptyOutDir: true,
+    outDir: path.resolve(__dirname, "dist"), // Dove mettere la cartella dist (qui nella root)
+    emptyOutDir: true, // Pulisce la cartella dist prima di buildare
+    rollupOptions: {
+      input: path.resolve(__dirname, "src/index.html"), // punto di partenza per il build
+    },
   },
-  plugins: [react(), tailwindcss()],
+  plugins: [react()],
   server: {
     proxy: {
-      "/api": {
-        target: "http://localhost:5000",
-        changeOrigin: true,
-        secure: false,
-      },
+      "/api": "http://localhost:5000", // il tuo backend
     },
   },
 });
