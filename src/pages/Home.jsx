@@ -1,10 +1,14 @@
 import { Link } from "react-router-dom";
 import CarouselComponent from "../components/CarouselComponent";
-import SpinnerComponent from "../components/SpinnerComponent";
 import { motion } from "framer-motion";
 import Footer from "../components/FooterComponent";
+/* import { useSelector } from "react-redux";  */
 
 export default function Home() {
+  // Puoi usare localStorage o Redux:
+  const token = localStorage.getItem("token");
+  const isLoggedIn = !!token /* useSelector((state) => !!state.auth.token); */ // esempio, dipende dal tuo store
+
   return (
     <div className="bg-[#0d0d0d] min-h-screen px-4 sm:px-6 py-10 font-sans text-[#f3e6d8] relative overflow-x-hidden">
       {/* Hero */}
@@ -52,9 +56,16 @@ export default function Home() {
         <h2 className="text-center text-4xl font-bold mb-10 drop-shadow-[0_0_10px_rgba(255,106,0,0.7)]">
           Eventi in evidenza
         </h2>
-        <CarouselComponent />
+
+        {isLoggedIn ? (
+          <CarouselComponent />
+        ) : (
+          <p className="text-center text-orange-400 text-lg font-semibold">
+            Fai il login per vedere gli eventi in evidenza
+          </p>
+        )}
       </motion.div>
-      <Footer/>
+      <Footer />
     </div>
   );
 }

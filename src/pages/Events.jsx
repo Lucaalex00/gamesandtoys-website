@@ -1,7 +1,8 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import EventCard from "../components/EventCardComponent";
+import SpinnerComponent from "../components/SpinnerComponent";
 
 export default function Events() {
   const [events, setEvents] = useState([]);
@@ -9,34 +10,39 @@ export default function Events() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [successMessage, setSuccessMessage] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const userCategory = useSelector((state) => state.auth.userCategory);
   const token = localStorage.getItem("token");
-  
+
   useEffect(() => {
-    const fetchEvents = async () => {
+    async function fetchData() {
       try {
-        const res = await axios.get("/api/events");
-        setEvents(res.data);
+        const [resEvents, resUsers] = await Promise.all([
+          axios.get("/api/events"),
+          axios.get("/api/users", { headers: { Authorization: `Bearer ${token}` } }),
+        ]);
+        setEvents(resEvents.data);
+        setUsers(resUsers.data);
       } catch (err) {
-        console.error("Errore nel caricamento eventi:", err);
+        console.error("Errore nel caricamento dati:", err);
+      } finally {
+        setLoading(false);
       }
-    };
-
-    const fetchUsers = async () => {
-      try {
-        const res = await axios.get("/api/users", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUsers(res.data);
-      } catch (err) {
-        console.error("Errore nel caricamento utenti:", err);
-      }
-    };
-
-    fetchEvents();
-    fetchUsers();
+    }
+    fetchData();
   }, [token]);
+
+  // Qui tutti gli hook sono già chiamati in ordine: ok.
+
+  // Poi il return condizionale
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0d0d0d]">
+        <SpinnerComponent />
+      </div>
+    );
+  }
 
   const handleUpdatePoints = async (eventId, userId, delta) => {
     try {
@@ -79,18 +85,14 @@ export default function Events() {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-  
-      // Ottieni l'evento aggiornato dalla risposta
+
       const updatedEvent = response.data.updatedEvent;
-  
-      // Ordina i partecipanti per punti decrescenti
       updatedEvent.participants.sort((a, b) => b.points - a.points);
-  
-      // Aggiorna gli eventi con l'evento ordinato
+
       setEvents((prevEvents) =>
         prevEvents.map((ev) => (ev._id === eventId ? updatedEvent : ev))
       );
-  
+
       setSuccessMessage(response.data.message || "Evento aggiornato!");
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
@@ -99,21 +101,19 @@ export default function Events() {
     }
   };
 
-  const filteredEvents = useMemo(() => {
-    const now = new Date();
-    const searchLower = search.toLowerCase();
+  const now = new Date();
+  const searchLower = search.toLowerCase();
 
-    return events.filter((event) => {
-      const eventDate = new Date(event.date);
-      const eventNameLower = event.name.toLowerCase();
+  const filteredEvents = events.filter((event) => {
+    const eventDate = new Date(event.date);
+    const eventNameLower = event.name.toLowerCase();
 
-      const matchName = eventNameLower.startsWith(searchLower);
+    const matchName = eventNameLower.startsWith(searchLower);
 
-      if (filter === "future") return eventDate > now && matchName;
-      if (filter === "past") return eventDate < now && matchName;
-      return matchName;
-    });
-  }, [events, search, filter]);
+    if (filter === "future") return eventDate > now && matchName;
+    if (filter === "past") return eventDate < now && matchName;
+    return matchName;
+  });
 
   return (
     <div className="min-h-screen px-4 py-8 text-white bg-[#0d0d0d]">
