@@ -39,7 +39,7 @@ const Navbar = () => {
           window.scrollTo({ top: 0, behavior: "smooth" });
         }}>
           <img
-            src="./logo_roberto.png"
+            src="/images/logo_roberto.png"
             alt="Logo"
             className=" w-16 h-auto transition-opacity duration-500 opacity-60 hover:opacity-100"
             
