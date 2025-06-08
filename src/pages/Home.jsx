@@ -1,13 +1,22 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import CarouselComponent from "../components/CarouselComponent";
 import { motion } from "framer-motion";
 import Footer from "../components/FooterComponent";
-/* import { useSelector } from "react-redux";  */
 
 export default function Home() {
-  // Puoi usare localStorage o Redux:
-  const token = localStorage.getItem("token");
-  const isLoggedIn = !!token /* useSelector((state) => !!state.auth.token); */ // esempio, dipende dal tuo store
+  const [token, setToken] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [checkingLogin, setCheckingLogin] = useState(true);
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    if (storedToken) {
+      setToken(storedToken);
+      setIsLoggedIn(true);
+    }
+    setCheckingLogin(false);
+  }, []);
 
   return (
     <div className="bg-[#0d0d0d] min-h-screen px-4 sm:px-6 py-10 font-sans text-[#f3e6d8] relative overflow-x-hidden">
@@ -57,7 +66,11 @@ export default function Home() {
           Eventi in evidenza
         </h2>
 
-        {isLoggedIn ? (
+        {checkingLogin ? (
+          <div className="text-center text-orange-400 text-lg font-semibold">
+            Controllo accesso...
+          </div>
+        ) : isLoggedIn ? (
           <CarouselComponent token={token} />
         ) : (
           <p className="text-center text-orange-400 text-lg font-semibold">
