@@ -57,10 +57,8 @@ export default function Home() {
       {/* Carousel Section */}
       <motion.div
         initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.8 }}
-        className="max-w-6xl mx-auto mt-20"
       >
         <h2 className="text-center text-4xl font-bold mb-10 drop-shadow-[0_0_10px_rgba(255,106,0,0.7)]">
           Eventi in evidenza

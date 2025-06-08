@@ -35,7 +35,7 @@ const Navbar = () => {
     >
       <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-4 sm:py-5">
         {/* Logo */}
-        <Link to="/" className="w-32" onClick={() => {
+        <Link to="/" className="w-32 pr-5" onClick={() => {
           window.scrollTo({ top: 0, behavior: "smooth" });
         }}>
           <img
