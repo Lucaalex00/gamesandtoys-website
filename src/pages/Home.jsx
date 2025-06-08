@@ -58,7 +58,7 @@ export default function Home() {
         </h2>
 
         {isLoggedIn ? (
-          <CarouselComponent />
+          <CarouselComponent token={token} />
         ) : (
           <p className="text-center text-orange-400 text-lg font-semibold">
             Fai il login per vedere gli eventi in evidenza

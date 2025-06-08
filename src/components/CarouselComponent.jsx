@@ -5,11 +5,9 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
-export default function CarouselComponent() {
+export default function CarouselComponent({token}) {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const token = localStorage.getItem("token");
 
   useEffect(() => {
     const fetchEvents = async () => {
