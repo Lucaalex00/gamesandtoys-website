@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   root: path.resolve(__dirname, "src"), // Qui dici che la root del frontend è 'src'
@@ -11,7 +12,7 @@ export default defineConfig({
       input: path.resolve(__dirname, "src/index.html"), // punto di partenza per il build
     },
   },
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   server: {
     proxy: {
       "/api": "http://localhost:5000", // il tuo backend

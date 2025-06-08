@@ -41,7 +41,7 @@ router.put("/:id", protect, async (req, res) => {
   }
 });
 
-// Nel router utenti (es. userRoutes.js)
+// PUT /api/users/:id/reset-password => Password (solo admin)
 router.put("/:id/reset-password", protect, async (req, res) => {
   try {
     if (req.user.category !== "admin") {
@@ -55,12 +55,15 @@ router.put("/:id/reset-password", protect, async (req, res) => {
       return res.status(400).json({ message: "Password non valida" });
     }
 
+    console.log("Password ricevuta per reset:", newPassword);
+
     const user = await User.findById(id);
     if (!user) return res.status(404).json({ message: "Utente non trovato" });
 
-    // HASH della nuova password
-    user.password = newPassword; // lascia che il middleware faccia l'hashing
-    await user.save(); // il pre("save") lo hash-a correttamente
+    user.password = newPassword; // assegna la password in chiaro
+    const savedUser = await user.save(); // il pre-save la hasherà automaticamente
+
+    console.log("Utente salvato con password hashata:", savedUser.password);
 
     res.status(200).json({ message: "Password aggiornata con successo" });
   } catch (err) {

@@ -19,31 +19,40 @@ const app = express();
 
 // In produzione, sostituisci con il dominio frontend reale, es:
 // origin: "https://tuo-frontend.onrender.com"
-const allowedOrigin =
-  process.env.NODE_ENV === "production"
-    ? "https://gamesandtoys-website.onrender.com"
-    : "http://localhost:5173";
+const isProduction = process.env.NODE_ENV === "production";
 
+const allowedOrigin = isProduction
+  ? "https://gamesandtoys-website.onrender.com" // il tuo dominio in produzione
+  : "http://localhost:5173";
+
+console.log("Allowed origin:", allowedOrigin);
 app.use(
   cors({
     origin: allowedOrigin,
-    credentials: true,
   })
 );
 
 app.use(express.json());
-
+console.log("JWT_SECRET:", process.env.JWT_SECRET);
+console.log("NODE_ENV:", process.env.NODE_ENV);
 // Rotte API
+console.log("Carico /api/events");
 app.use("/api/events", eventsRoutes);
+
+console.log("Carico /api/auth");
 app.use("/api/auth", authRoutes);
+
+console.log("Carico /api/users");
 app.use("/api/users", userRoutes);
 
-// Serve il frontend statico (dalla build Vite nella cartella dist)
-app.use(express.static(path.join(__dirname, "dist")));
+console.log("Carico static frontend...");
 
-// Per tutte le altre rotte, serve index.html (SPA fallback)
+// Serve il frontend statico (dalla build Vite nella cartella dist)
+app.use(express.static(path.join(__dirname, "..", "dist")));
+
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "index.html"));
+  console.log("Serving index.html for route", req.url);
+  res.sendFile(path.join(__dirname, "..", "dist", "index.html"));
 });
 
 // Connessione DB + Avvio server

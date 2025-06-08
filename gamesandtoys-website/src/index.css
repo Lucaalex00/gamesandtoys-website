@@ -1,8 +1,9 @@
-@import "tailwindcss";
+
 
 @import 'swiper/css';
 @import 'swiper/css/navigation';
 @import 'swiper/css/pagination';
+@import "tailwindcss";
 *{
     scrollbar-width: thin;
     .custom-scrollbar-card{

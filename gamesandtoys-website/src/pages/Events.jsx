@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
-import * as jwtDecodeModule from "jwt-decode";
 import EventCard from "../components/EventCardComponent";
 
 export default function Events() {
@@ -13,19 +12,7 @@ export default function Events() {
 
   const userCategory = useSelector((state) => state.auth.userCategory);
   const token = localStorage.getItem("token");
-  console.log("Categoria utente:", userCategory);
-
-  useEffect(() => {
-    if (token) {
-      try {
-        const decoded = jwtDecodeModule(token);
-        console.log("Decoded token:", decoded);
-      } catch (err) {
-        console.warn("Token non valido:", err);
-      }
-    }
-  }, [token]);
-
+  
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -93,11 +80,15 @@ export default function Events() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
   
-      // Usa i dati aggiornati direttamente dalla risposta
+      // Ottieni l'evento aggiornato dalla risposta
+      const updatedEvent = response.data.updatedEvent;
+  
+      // Ordina i partecipanti per punti decrescenti
+      updatedEvent.participants.sort((a, b) => b.points - a.points);
+  
+      // Aggiorna gli eventi con l'evento ordinato
       setEvents((prevEvents) =>
-        prevEvents.map((ev) =>
-          ev._id === eventId ? response.data.updatedEvent : ev
-        )
+        prevEvents.map((ev) => (ev._id === eventId ? updatedEvent : ev))
       );
   
       setSuccessMessage(response.data.message || "Evento aggiornato!");

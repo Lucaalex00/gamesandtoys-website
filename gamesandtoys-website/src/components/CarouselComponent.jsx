@@ -41,12 +41,13 @@ export default function CarouselComponent() {
       }}
       navigation
       pagination={{ clickable: true }}
-      autoplay={{ delay: 3500 }}
+      autoplay={{ delay: 3000 }}
       className="pb-12"
+      fadeEffect
     >
       {events.map((event) => (
         <SwiperSlide key={event._id}>
-          <div className="bg-orange-900 text-center text-black rounded-xl shadow-md flex flex-col h-[360px] w-full max-w-xs mx-auto">
+          <div className="bg-yellow-900 text-center text-black rounded-xl shadow-md flex flex-col h-[360px] w-full max-w-xs mx-auto">
             <img
               src={event.img}
               alt={event.name}
@@ -54,7 +55,7 @@ export default function CarouselComponent() {
             />
             <div className="flex-1 flex flex-col p-4">
               <h3 className="font-bold text-lg mb-1">{event.name}</h3>
-              <p className="text-gray-400 text-sm mb-2">
+              <p className="text-gray-900  text-sm mb-2">
                 {new Date(event.date).toLocaleDateString()}
               </p>
               <div className="text-sm text-black overflow-y-auto flex-1 max-h-[100px] pr-1 custom-scrollbar-card">
