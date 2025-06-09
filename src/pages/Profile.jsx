@@ -29,13 +29,13 @@ export default function Profile() {
   return (
   <div
     className="
-      max-h-screen w-full 
+      w-full 
       flex flex-col sm:flex-row 
       items-start justify-start 
       px-4 sm:px-6 lg:px-8 py-10 
       bg-[#0d0d0d] text-white overflow-x-hidden
     "
-    style={{ height: "95vh" }} // Altezza viewport per gestire overflow figli
+    style={{ minHeight: "100vh" }} // Solo minHeight per evitare tagli su mobile
   >
     <motion.form
       initial={{ opacity: 0, y: 20 }}
@@ -43,12 +43,11 @@ export default function Profile() {
       transition={{ duration: 0.5 }}
       className="
         bg-gray-900 
-        w-1/2 max-w-md mx-auto
+        w-full sm:w-1/2 max-w-md mx-auto
         p-6 sm:p-8 
         rounded-xl shadow-lg space-y-6 border border-gray-700
         flex-shrink-0
-        sm:h-screen 
-        overflow-y-auto
+        sm:h-screen sm:overflow-y-auto
       "
     >
       <h2 className="text-2xl font-bold text-center tracking-tight">Profilo utente</h2>
@@ -116,12 +115,11 @@ export default function Profile() {
     {userData.category === "admin" && (
       <div
         className="
-          w-full 
-          max-w-5xl 
+          w-full sm:w-auto 
           mt-10 sm:mt-0 
           sm:ml-6 
           flex-grow 
-          overflow-y-hidden
+          overflow-y-auto
         "
         style={{ maxHeight: "100vh" }}
       >
