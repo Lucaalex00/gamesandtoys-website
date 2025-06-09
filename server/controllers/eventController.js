@@ -11,6 +11,29 @@ export const getAllEvents = async (req, res) => {
   }
 };
 
+// POST /api/events
+export const createEvent = async (req, res) => {
+  // Controllo admin (se vuoi mantenerlo qui)
+  if (req.user.category !== "admin") {
+    return res.status(403).json({ message: "Accesso negato: solo admin" });
+  }
+
+  const { name, date, img, desc } = req.body;
+
+  if (!name || !date || !img || !desc) {
+    return res.status(400).json({ message: "Tutti i campi sono obbligatori" });
+  }
+
+  try {
+    const newEvent = new Event({ name, date, img, desc, participants: [] });
+    await newEvent.save();
+    res.status(201).json({ message: "Evento creato con successo", event: newEvent });
+  } catch (error) {
+    console.error("Errore nella creazione evento:", error);
+    res.status(500).json({ message: "Errore nel creare evento" });
+  }
+};
+
 // PUT /api/events/:id
 export const updateEvent = async (req, res) => {
   const { id } = req.params;
@@ -26,6 +49,10 @@ export const updateEvent = async (req, res) => {
     // aggiorna la descrizione se fornita
     if (req.body.desc) {
       event.desc = req.body.desc;
+    }
+    
+    if (req.body.img) {
+      event.img = req.body.img;
     }
 
     // aggiorna i partecipanti se forniti
@@ -49,6 +76,31 @@ export const updateEvent = async (req, res) => {
   } catch (error) {
     console.error("Errore aggiornamento evento:", error);
     res.status(500).json({ message: "Errore nell'aggiornamento dell'evento" });
+  }
+};
+
+// DELETE /api/events/:id
+export const deleteEvent = async (req, res) => {
+  const { id } = req.params;
+
+  // Controllo admin
+  if (req.user?.category !== "admin") {
+    return res.status(403).json({ message: "Accesso negato: solo admin" });
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "ID non valido" });
+  }
+
+  try {
+    const deleted = await Event.findByIdAndDelete(id);
+    if (!deleted) {
+      return res.status(404).json({ message: "Evento non trovato" });
+    }
+    res.json({ message: "Evento eliminato con successo" });
+  } catch (error) {
+    console.error("Errore eliminazione evento:", error);
+    res.status(500).json({ message: "Errore nella cancellazione" });
   }
 };
 
@@ -144,3 +196,6 @@ export const decrementPoints = async (req, res) => {
     res.status(500).json({ message: "Errore nel decremento dei punti" });
   }
 };
+
+
+

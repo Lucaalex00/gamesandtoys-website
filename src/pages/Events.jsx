@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import EventCard from "../components/EventCardComponent";
@@ -12,8 +12,16 @@ export default function Events() {
   const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(true);
 
+  const [addError, setAddError] = useState("");
+  const [adding, setAdding] = useState(false);
+
   const userCategory = useSelector((state) => state.auth.userCategory);
   const token = localStorage.getItem("token");
+
+  const nameRef = useRef();
+  const dateRef = useRef();
+  const imgRef = useRef();
+  const descRef = useRef();
 
   useEffect(() => {
     async function fetchData() {
@@ -32,17 +40,6 @@ export default function Events() {
     }
     fetchData();
   }, [token]);
-
-  // Qui tutti gli hook sono già chiamati in ordine: ok.
-
-  // Poi il return condizionale
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0d0d0d]">
-        <SpinnerComponent />
-      </div>
-    );
-  }
 
   const handleUpdatePoints = async (eventId, userId, delta) => {
     try {
@@ -75,29 +72,88 @@ export default function Events() {
     }
   };
 
-  const handleSaveEdit = async (eventId, newDesc, participantIds) => {
+  const handleSaveEdit = async (eventId, newDesc, participantIds, newImg) => {
+  try {
+    const response = await axios.put(
+      `/api/events/${eventId}`,
+      {
+        desc: newDesc,
+        participants: participantIds.map((userId) => ({ userId })),
+        img: newImg, // aggiungi immagine qui
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    const updatedEvent = response.data.updatedEvent;
+    updatedEvent.participants.sort((a, b) => b.points - a.points);
+
+    setEvents((prevEvents) =>
+      prevEvents.map((ev) => (ev._id === eventId ? updatedEvent : ev))
+    );
+
+    setSuccessMessage(response.data.message || "Evento aggiornato!");
+    setTimeout(() => setSuccessMessage(""), 3000);
+  } catch (err) {
+    console.error("Errore nel salvataggio evento:", err);
+    alert("Errore nel salvataggio evento");
+  }
+};
+
+  // Nuova funzione per eliminare un evento
+  const handleDeleteEvent = async (eventId) => {
+    const confirmDelete = window.confirm("Sei sicuro di voler eliminare questo evento?");
+    if (!confirmDelete) return;
+
     try {
-      const response = await axios.put(
-        `/api/events/${eventId}`,
-        {
-          desc: newDesc,
-          participants: participantIds.map((userId) => ({ userId })),
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axios.delete(`/api/events/${eventId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-      const updatedEvent = response.data.updatedEvent;
-      updatedEvent.participants.sort((a, b) => b.points - a.points);
-
-      setEvents((prevEvents) =>
-        prevEvents.map((ev) => (ev._id === eventId ? updatedEvent : ev))
-      );
-
-      setSuccessMessage(response.data.message || "Evento aggiornato!");
+      setEvents((prev) => prev.filter((ev) => ev._id !== eventId));
+      setSuccessMessage("Evento eliminato con successo!");
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
-      console.error("Errore nel salvataggio evento:", err);
-      alert("Errore nel salvataggio evento");
+      console.error("Errore nella cancellazione:", err);
+      alert("Errore nell'eliminazione dell'evento");
+    }
+  };
+
+  const handleAddEvent = async () => {
+    setAddError("");
+    setAdding(true);
+
+    const newEvent = {
+      name: nameRef.current.value.trim(),
+      date: dateRef.current.value,
+      img: "/events/" + imgRef.current.value.trim(),
+      desc: descRef.current.value.trim(),
+    };
+
+    if (!newEvent.name || !newEvent.date || !newEvent.img || !newEvent.desc) {
+      setAddError("Compila tutti i campi");
+      setAdding(false);
+      return;
+    }
+
+    try {
+      const res = await axios.post("/api/events", newEvent, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setEvents((prev) => [...prev, res.data.event]);
+
+      // Reset form
+      nameRef.current.value = "";
+      dateRef.current.value = "";
+      imgRef.current.value = "";
+      descRef.current.value = "";
+
+      setSuccessMessage("Evento creato con successo!");
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (err) {
+      console.error("Errore nell'aggiunta evento:", err);
+      setAddError("Errore nel creare evento");
+    } finally {
+      setAdding(false);
     }
   };
 
@@ -115,9 +171,52 @@ export default function Events() {
     return matchName;
   });
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0d0d0d]">
+        <SpinnerComponent />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen px-4 py-8 text-white bg-[#0d0d0d]">
       <h1 className="text-4xl font-extrabold text-center mb-10 tracking-wide">Eventi</h1>
+
+      {userCategory === "admin" && (
+        <div className="max-w-5xl mx-auto bg-gray-800 p-6 rounded-lg mb-10">
+          <h2 className="text-2xl font-semibold mb-4">Aggiungi nuovo evento</h2>
+          <input
+            ref={nameRef}
+            placeholder="Nome evento"
+            className="w-full mb-3 p-2 rounded bg-gray-900 text-white"
+          />
+          <input
+            ref={dateRef}
+            type="date"
+            className="w-full mb-3 p-2 rounded bg-gray-900 text-white"
+          />
+          <input
+            ref={imgRef}
+            placeholder="Nome File Immagine"
+            className="w-full mb-3 p-2 rounded bg-gray-900 text-white"
+          />
+          <textarea
+            ref={descRef}
+            placeholder="Descrizione"
+            className="w-full mb-3 p-2 rounded bg-gray-900 text-white"
+            rows={3}
+          />
+          {addError && <p className="text-red-500 mb-2">{addError}</p>}
+          <button
+            onClick={handleAddEvent}
+            disabled={adding}
+            className="bg-green-600 px-4 py-2 rounded hover:bg-green-700 transition"
+          >
+            {adding ? "Aggiungo..." : "Aggiungi Evento"}
+          </button>
+        </div>
+      )}
 
       <div className="max-w-5xl mx-auto flex flex-col sm:flex-row gap-5 mb-10 px-3">
         <input
@@ -162,6 +261,7 @@ export default function Events() {
               token={token}
               onUpdatePoints={handleUpdatePoints}
               onSaveEdit={handleSaveEdit}
+              onDeleteEvent={handleDeleteEvent} 
             />
           ))
         ) : (

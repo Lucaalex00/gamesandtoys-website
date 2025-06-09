@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 
 export default function Info() {
   return (
-    <div className="min-h-screen bg-[#0d0d0d] text-white flex items-center justify-center px-6 py-16">
+    <div className="min-h-screen bg-[#0d0d0d] text-center text-white flex items-center justify-center px-6 py-16">
       <motion.div
         className="max-w-2xl w-full bg-[#1a1a1a] border border-orange-600 rounded-2xl shadow-lg p-8 space-y-6"
         initial={{ opacity: 0, y: 30 }}
@@ -40,13 +40,13 @@ export default function Info() {
               href="https://www.google.com/maps/place/Games+and+Toys/@44.7175626,8.28237,17z/data=!3m1!4b1!4m6!3m5!1s0x4787883899f9f2b7:0x413a490af739ed03!8m2!3d44.7175588!4d8.2849449!16s%2Fg%2F11f3c8wwzj?entry=ttu"
               target="_blank"
               rel="noreferrer"
-              className="text-orange-400 hover:underline"
+              className="text-orange-200 text-xl hover:underline"
             >
               Canelli, Viale Risorgimento 52 (AT)
             </a>
           </div>
 
-          <div className="border-t border-gray-700 pt-4">
+          <div className="border-t border-gray-700 pt-4 relative">
             <p className="text-orange-400 font-semibold mb-2">
               Seguici sui social
             </p>
@@ -56,7 +56,7 @@ export default function Info() {
                   href="https://www.facebook.com/gtcanelli?locale=it_IT"
                   target="_blank"
                   rel="noreferrer"
-                  className="text-gray-300 hover:text-orange-400 transition"
+                  className="text-gray-300 hover:text-blue-400 duration-500 "
                 >
                   Facebook
                 </a>
@@ -66,7 +66,7 @@ export default function Info() {
                   href="https://www.instagram.com/gamesandtoys_mtg/"
                   target="_blank"
                   rel="noreferrer"
-                  className="text-gray-300 hover:text-orange-400 transition"
+                  className="text-gray-300 hover:text-pink-400 duration-500"
                 >
                   Instagram
                 </a>

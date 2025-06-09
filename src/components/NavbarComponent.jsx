@@ -33,9 +33,9 @@ const Navbar = () => {
         scrolled ? 'bg-black/90' : 'bg-black/90'
       } shadow-lg`}
     >
-      <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-4 sm:py-5">
+      <div className="max-w-7xl mx-auto flex justify-between items-center gap-2 px-4 py-4 sm:py-5">
         {/* Logo */}
-        <Link to="/" className="w-32 pr-5" onClick={() => {
+        <Link to="/" className="w-16 mr-2" onClick={() => {
           window.scrollTo({ top: 0, behavior: "smooth" });
         }}>
           <img
@@ -47,7 +47,7 @@ const Navbar = () => {
         </Link>
 
         {/* Nav Links */}
-        <div className="flex md:space-x-18 sm:space-x-12 space-x-4 w-full">
+        <div className="flex md:space-x-8 sm:space-x-6 gap-2 space-x-4 w-1/2">
           {navLinks.map(({ path, label }) => {
             const isActive = location.pathname === path;
             return (
@@ -76,20 +76,20 @@ const Navbar = () => {
         </div>
 
         {/* Auth buttons */}
-        <div className="flex md:space-x-8 space-x-2 w-1/3 justify-end items-center">
+        <div className="flex md:space-x-8 space-x-8 w-1/2 justify-end items-center">
           {isAuthenticated ? (
             <>
               <Link to="/profile" onClick={() => {
                 window.scrollTo({ top: 0, behavior: "smooth" });
-              }} className="font-semibold text-[#d9822b]">
-                {userName || "Profilo" } 
+              }} className="font-semibold text-md text-center text-[#d9822b]">
+                {<i className="fa-solid fa-user"></i> || "Profilo" } 
               </Link>
               <button
                 onClick={handleLogout}
-                className="font-semibold cursor-pointer text-red-500 hover:text-red-600 duration-300 
+                className="font-semibold text-center text-md flex items-center gap-2 cursor-pointer text-red-500 hover:text-red-600 duration-300 
                 hover:scale-105"
-              >
-                Logout
+              > 
+                <i className="fa-solid fa-right-from-bracket"></i>
               </button>
             </>
           ) : (

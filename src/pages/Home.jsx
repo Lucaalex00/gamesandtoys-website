@@ -25,7 +25,7 @@ export default function Home() {
         initial={{ opacity: 0, y: -40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="text-center max-w-3xl mx-auto"
+        className="text-center max-w-3xl mx-auto mb-5"
       >
         <h1 className="text-5xl sm:text-7xl font-extrabold tracking-wide drop-shadow-[0_0_15px_rgba(255,106,0,0.8)] mb-4">
           <span className="text-[#ff6a00]">Games</span>
@@ -39,7 +39,7 @@ export default function Home() {
           whileHover={{ scale: 1.05, boxShadow: "0 0 20px #ff6a00" }}
           whileTap={{ scale: 0.95 }}
           transition={{ type: "spring", stiffness: 300 }}
-          className="inline-block mt-10"
+          className="inline-block mt-10 mb-5"
         >
           <Link
             to="/events"
@@ -52,7 +52,7 @@ export default function Home() {
             <span className="relative z-10">Scopri tutti gli eventi</span>
           </Link>
         </motion.div>
-      </motion.div>
+      </motion.div >
 
       {/* Carousel Section */}
       <motion.div

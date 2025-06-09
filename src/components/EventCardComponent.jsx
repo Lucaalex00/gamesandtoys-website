@@ -8,9 +8,11 @@ export default function EventCard({
   token,
   onUpdatePoints,
   onSaveEdit,
+  onDeleteEvent
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedDescription, setEditedDescription] = useState(event.desc || "");
+  const [editedImg, setEditedImg] = useState(event.img || "");
   const [selectedParticipants, setSelectedParticipants] = useState(
     event.participants?.map((p) => p.userId) || []
   );
@@ -40,13 +42,16 @@ export default function EventCard({
   };
 
   const handleSaveClick = () => {
-    onSaveEdit(event._id, editedDescription, selectedParticipants);
-    setIsEditing(false);
-  };
+  const fullImgPath = editedImg.startsWith("/events/") ? editedImg : "/events/" + editedImg;
+  console.log("Salvando img:", fullImgPath);
+  onSaveEdit(event._id, editedDescription, selectedParticipants, fullImgPath);
+  setIsEditing(false);
+};
 
   const handleCancelClick = () => {
     setIsEditing(false);
     setEditedDescription(event.desc || "");
+    setEditedImg(event.img || "");
     setSelectedParticipants(event.participants?.map((p) => p.userId) || []);
   };
 
@@ -59,9 +64,21 @@ export default function EventCard({
       transition={{ duration: 0.4 }}
       className={`bg-gray-800 p-6 rounded-xl border-4 ${borderColor} shadow-lg relative ${pulseClass}`}
     >
-      <h2 className="text-2xl font-semibold mb-2 tracking-tight">{event.name}</h2>
+      <div className="flex justify-between items-center mb-2">
+        <h2 className="text-2xl font-semibold tracking-tight">{event.name}</h2>
+        {userCategory === "admin" && (
+          <button
+            onClick={() => onDeleteEvent(event._id)}
+            className="text-red-500 cursor-pointer opacity-60 hover:scale-120 hover:opacity-100 hover:text-red-700 font-bold text-xl ml-4"
+            title="Elimina evento"
+            aria-label="Elimina evento"
+          >
+            ✖
+          </button>
+        )}
+      </div>
+
       <p className="text-sm text-gray-300 mb-4">
-        {" "}
         <time dateTime={event.date} className="font-mono text-orange-400">
           {new Date(event.date).toLocaleDateString("it-IT", {
             weekday: "long",
@@ -74,6 +91,11 @@ export default function EventCard({
 
       {!isEditing && (
         <>
+          {/* <img
+            src={event.img}
+            alt={event.name}
+            className="mb-4 rounded-md max-h-48 w-full object-cover"
+          /> */}
           <p className="mb-4 text-gray-300 whitespace-pre-wrap">{event.desc}</p>
 
           <div className="mb-4">
@@ -94,26 +116,26 @@ export default function EventCard({
                       <p className="text-xs text-gray-400">{user.email}</p>
                     </div>
                     <div className="flex items-center space-x-3">
-                        {userCategory === "admin" && (
-                            <button
-                            onClick={() => onUpdatePoints(event._id, p.userId, -1)}
-                            className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md text-sm font-semibold transition"
-                            >
-                            -1
-                            </button>
-                        )}
-                        <span className="font-mono text-lg min-w-[2ch] text-center inline-block">
-                          {typeof p.points === "number" ? p.points : 0}
-                        </span>
-                        {userCategory === "admin" && (
-                            <button
-                            onClick={() => onUpdatePoints(event._id, p.userId, +1)}
-                            className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded-md text-sm font-semibold transition"
-                            >
-                            +1
-                            </button>
-                        )}
-                        </div>
+                      {userCategory === "admin" && (
+                        <button
+                          onClick={() => onUpdatePoints(event._id, p.userId, -1)}
+                          className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md text-sm font-semibold transition"
+                        >
+                          -1
+                        </button>
+                      )}
+                      <span className="font-mono text-lg min-w-[2ch] text-center inline-block">
+                        {typeof p.points === "number" ? p.points : 0}
+                      </span>
+                      {userCategory === "admin" && (
+                        <button
+                          onClick={() => onUpdatePoints(event._id, p.userId, +1)}
+                          className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded-md text-sm font-semibold transition"
+                        >
+                          +1
+                        </button>
+                      )}
+                    </div>
                   </motion.div>
                 );
               })
@@ -135,11 +157,22 @@ export default function EventCard({
 
       {isEditing && (
         <>
+          <label className="block mb-2 text-orange-400 font-semibold">
+            URL Immagine:
+          </label>
+          <input
+            type="text"
+            value={editedImg.startsWith("/events/") ? editedImg.slice(8) : editedImg}
+            onChange={(e) => setEditedImg(e.target.value)}
+            placeholder="Inserisci nome file immagine"
+            className="w-full p-2 rounded-lg bg-gray-900 border border-orange-500 text-white focus:outline-none focus:ring-2 focus:ring-orange-400 mb-4 transition"
+          />
+
           <textarea
             value={editedDescription}
             onChange={(e) => setEditedDescription(e.target.value)}
             rows={5}
-            className="w-full p-3 rounded-lg bg-gray-900 border border-orange-500 text-white resize-none focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
+            className="w-full p-3 rounded-lg bg-gray-900 border border-orange-500 text-white resize-none focus:outline-none focus:ring-2 focus:ring-orange-400 transition mb-4"
             placeholder="Descrizione evento..."
           ></textarea>
 
@@ -157,7 +190,9 @@ export default function EventCard({
                   onChange={() => toggleParticipant(user._id)}
                   className="form-checkbox h-5 w-5 text-orange-500 rounded focus:ring-orange-400"
                 />
-                <span className="text-white">{user.name} ({user.email})</span>
+                <span className="text-white">
+                  {user.name} ({user.email})
+                </span>
               </label>
             ))}
           </div>
@@ -165,17 +200,24 @@ export default function EventCard({
           <div className="flex justify-end space-x-4 mt-4">
             <button
               onClick={handleCancelClick}
-              className="px-5 py-2 bg-gray-700 rounded-lg text-gray-300 hover:bg-gray-600 transition focus:outline-none focus:ring-2 focus:ring-gray-500"
+              className="px-5 py-2 bg-gray-700 cursor-pointer rounded-lg text-gray-300 hover:bg-gray-600 transition focus:outline-none focus:ring-2 focus:ring-gray-500"
             >
               Annulla
             </button>
             <button
               onClick={handleSaveClick}
-              className="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold transition focus:outline-none focus:ring-2 focus:ring-orange-400"
+              className="px-5 py-2 bg-orange-500 cursor-pointer hover:bg-orange-600 text-white rounded-lg font-semibold transition focus:outline-none focus:ring-2 focus:ring-orange-400"
             >
               Salva
             </button>
           </div>
+          {userCategory === "admin" && event.img && (
+          <img
+            src={editedImg.startsWith("/events/") ? editedImg : "/events/" + editedImg}
+            alt={event.name + " : Immagine non caricata"}
+            className="absolute top-3 right-32 w-24 h-24 z-10 rounded-md object-cover opacity-50 hover:opacity-100 duration-300 shadow-lg"
+          />
+          )}
         </>
       )}
     </motion.div>

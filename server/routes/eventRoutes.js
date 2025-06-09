@@ -7,12 +7,17 @@ import {
   assignPoints,
   incrementPoints,
   decrementPoints,
+  createEvent,
+  deleteEvent
 } from "../controllers/eventController.js";
 
 const router = express.Router();
 
 router.get("/", getAllEvents);
+router.post("/", protect, createEvent);
 router.put("/:id", updateEvent);
+router.delete('/:id', protect, deleteEvent);
+
 
 // Rotte extra admin
 router.post("/:eventId/add-user", addUserToEvent);
