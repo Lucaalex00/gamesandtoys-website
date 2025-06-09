@@ -82,7 +82,7 @@ export default function AdminUserList() {
       {error && <div className="text-red-500 mb-4">{error}</div>}
       {successMessage && <div className="text-green-500 mb-4">{successMessage}</div>}
 
-      <div className="space-y-6 overflow-auto h-[300px] sm:min-h-screen">
+      <div className="space-y-6 overflow-auto h-[500px] sm:min-h-screen">
         {users.map((user, index) => (
           <motion.div
             key={user._id}
