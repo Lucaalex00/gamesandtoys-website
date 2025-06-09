@@ -76,13 +76,13 @@ export default function AdminUserList() {
   };
 
   return (
-    <div className="min-h-screen px-6 bg-[#0d0d0d] text-white">
+    <div className="min-h-full px-6 bg-[#0d0d0d] text-white">
       <h1 className="text-xl text-center font-bold mb-3">Gestione utenti (Admin)</h1>
 
       {error && <div className="text-red-500 mb-4">{error}</div>}
       {successMessage && <div className="text-green-500 mb-4">{successMessage}</div>}
 
-      <div className="space-y-6 overflow-auto h-screen">
+      <div className="space-y-6 overflow-auto h-[300px] sm:min-h-screen">
         {users.map((user, index) => (
           <motion.div
             key={user._id}
