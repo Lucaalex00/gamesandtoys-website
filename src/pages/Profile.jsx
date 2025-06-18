@@ -18,7 +18,7 @@ export default function Profile() {
         });
         setUserData(res.data);
       } catch (err) {
-        setError("Errore nel caricamento del profilo.");
+        setError("Errore  : Prova con Logout e Login");
         console.error(err);
       }
     };

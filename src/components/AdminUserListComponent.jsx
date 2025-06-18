@@ -4,14 +4,26 @@ import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
 
 export default function AdminUserList() {
+  // Prendi il token dall'autenticazione (redux store)
   const { token } = useSelector((state) => state.auth);
+
+  // Stato per lista utenti
   const [users, setUsers] = useState([]);
+
+  // Stato per messaggi di errore/successo
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Stato per password reset, per ogni utente
+  // Stato per le nuove password da assegnare a ogni utente
   const [resetPasswords, setResetPasswords] = useState({});
 
+  // Stato per il filtro (input ricerca)
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Stato per gestire quali accordion sono aperti (id utenti)
+  const [openUserIds, setOpenUserIds] = useState([]);
+
+  // Chiamata API per caricare tutti gli utenti
   const fetchUsers = async () => {
     try {
       const res = await axios.get("/api/users", {
@@ -24,24 +36,29 @@ export default function AdminUserList() {
     }
   };
 
+  // Esegui il fetch utenti appena il token è disponibile
   useEffect(() => {
     fetchUsers();
   }, [token]);
 
+  // Gestione modifiche input (nome, email, ecc.)
   const handleInputChange = (index, field, value) => {
     const updated = [...users];
     updated[index][field] = value;
     setUsers(updated);
   };
 
+  // Gestione modifica campo password per utente
   const handleResetPasswordChange = (userId, value) => {
     setResetPasswords((prev) => ({ ...prev, [userId]: value }));
   };
 
+  // Salva le modifiche fatte a un utente
   const handleSave = async (user) => {
     try {
       const { _id, name, email, category, credito } = user;
-      await axios.put(`/api/users/${_id}`, 
+      await axios.put(
+        `/api/users/${_id}`,
         { name, email, category, credito },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -53,13 +70,14 @@ export default function AdminUserList() {
     }
   };
 
+  // Esegue il reset della password per un utente
   const handleResetPassword = async (userId) => {
     const newPassword = resetPasswords[userId];
     if (!newPassword || newPassword.trim() === "") {
       setError("Inserisci una nuova password per il reset");
       return;
     }
-  
+
     try {
       await axios.put(
         `/api/users/${userId}/reset-password`,
@@ -75,88 +93,152 @@ export default function AdminUserList() {
     }
   };
 
+  // Mostra/Nasconde l'accordion per un utente
+  const toggleAccordion = (userId) => {
+    setOpenUserIds((prev) =>
+      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+    );
+  };
+
   return (
     <div className="min-h-full px-6 bg-[#0d0d0d] text-white">
+      {/* Titolo */}
       <h1 className="text-xl text-center font-bold mb-3">Gestione utenti (Admin)</h1>
 
+      {/* Messaggi di errore o successo */}
       {error && <div className="text-red-500 mb-4">{error}</div>}
       {successMessage && <div className="text-green-500 mb-4">{successMessage}</div>}
 
-      <div className="space-y-6 overflow-auto h-[500px] sm:min-h-screen">
-        {users.map((user, index) => (
-          <motion.div
-            key={user._id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="bg-gray-900 p-4 rounded-xl border border-gray-700 space-y-4"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* User data fields */}
-              <div>
-                <label className="text-sm text-gray-400">Nome</label>
-                <input
-                  className="w-full p-2 bg-gray-800 border border-gray-600 rounded"
-                  value={user.name}
-                  onChange={(e) => handleInputChange(index, "name", e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="text-sm text-gray-400">Email</label>
-                <input
-                  className="w-full p-2 bg-gray-800 border border-gray-600 rounded"
-                  value={user.email}
-                  onChange={(e) => handleInputChange(index, "email", e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="text-sm text-gray-400">Categoria</label>
-                <select
-                  className="w-full p-2 bg-gray-800 border border-gray-600 rounded"
-                  value={user.category}
-                  onChange={(e) => handleInputChange(index, "category", e.target.value)}
-                >
-                  <option value="user">user</option>
-                  <option value="admin">admin</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-sm text-gray-400">Credito (€)</label>
-                <input
-                  type="number"
-                  className="w-full p-2 bg-gray-800 border border-gray-600 rounded"
-                  value={user.credito}
-                  onChange={(e) => handleInputChange(index, "credito", Number(e.target.value))}
-                />
-              </div>
-            </div>
+      {/* Campo input per la ricerca utenti */}
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Cerca per nome o email..."
+          className="w-full p-2 bg-gray-800 border border-gray-600 rounded text-white"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
 
-            <button
-              onClick={() => handleSave(user)}
-              className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white font-semibold"
-            >
-              Salva modifiche
-            </button>
+      {/* Lista utenti filtrati */}
+      <div className="space-y-4 overflow-auto h-[500px] sm:min-h-screen">
+        {users
+          .filter((user) =>
+            user.name.toLowerCase().startsWith(searchQuery.toLowerCase()) ||
+            user.email.toLowerCase().startsWith(searchQuery.toLowerCase())
+          )
 
-            {/* Reset password */}
-            <div className="mt-4">
-              <label className="text-sm text-gray-400 mr-2">Reset Password</label>
-              <input
-                type="password"
-                placeholder="Nuova password"
-                className="p-2 bg-gray-800 border border-gray-600 rounded mr-2"
-                value={resetPasswords[user._id] || ""}
-                onChange={(e) => handleResetPasswordChange(user._id, e.target.value)}
-              />
-              <button
-                onClick={() => handleResetPassword(user._id)}
-                className="px-3 py-2 bg-red-600 hover:bg-red-700 rounded text-white font-semibold"
+          .map((user, index) => {
+            const isOpen = openUserIds.includes(user._id);
+
+            return (
+              <div
+                key={user._id}
+                className="bg-gray-900 rounded-xl border border-gray-700"
               >
-                Reset
-              </button>
-            </div>
-          </motion.div>
-        ))}
+                {/* Intestazione accordion (cliccabile) */}
+                <button
+                  onClick={() => toggleAccordion(user._id)}
+                  className="w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 rounded-t-xl flex justify-between items-center"
+                >
+                  <span className="text-lg font-semibold">
+                    {user.name} ({user.email})
+                  </span>
+                  <span className="text-sm text-gray-400">
+                    {isOpen ? "▲" : "▼"}
+                  </span>
+                </button>
+
+                {/* Corpo accordion animato */}
+                <motion.div
+                  initial={false}
+                  animate={{ height: isOpen ? "auto" : 0, opacity: isOpen ? 1 : 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-4 space-y-4">
+                    {/* Campi modificabili */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm text-gray-400">Nome</label>
+                        <input
+                          className="w-full p-2 bg-gray-800 border border-gray-600 rounded"
+                          value={user.name}
+                          onChange={(e) =>
+                            handleInputChange(index, "name", e.target.value)
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-400">Email</label>
+                        <input
+                          className="w-full p-2 bg-gray-800 border border-gray-600 rounded"
+                          value={user.email}
+                          onChange={(e) =>
+                            handleInputChange(index, "email", e.target.value)
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-400">Categoria</label>
+                        <select
+                          className="w-full p-2 bg-gray-800 border border-gray-600 rounded"
+                          value={user.category}
+                          onChange={(e) =>
+                            handleInputChange(index, "category", e.target.value)
+                          }
+                        >
+                          <option value="user">user</option>
+                          <option value="admin">admin</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-400">Credito (€)</label>
+                        <input
+                          type="number"
+                          className="w-full p-2 bg-gray-800 border border-gray-600 rounded"
+                          value={user.credito}
+                          onChange={(e) =>
+                            handleInputChange(index, "credito", Number(e.target.value))
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    {/* Pulsante salvataggio */}
+                    <button
+                      onClick={() => handleSave(user)}
+                      className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white font-semibold"
+                    >
+                      Salva modifiche
+                    </button>
+
+                    {/* Sezione reset password */}
+                    <div className="mt-4">
+                      <label className="text-sm text-gray-400 mr-2">
+                        Reset Password
+                      </label>
+                      <input
+                        type="password"
+                        placeholder="Nuova password"
+                        className="p-2 bg-gray-800 border border-gray-600 rounded mr-2"
+                        value={resetPasswords[user._id] || ""}
+                        onChange={(e) =>
+                          handleResetPasswordChange(user._id, e.target.value)
+                        }
+                      />
+                      <button
+                        onClick={() => handleResetPassword(user._id)}
+                        className="px-3 py-2 bg-red-600 hover:bg-red-700 rounded text-white font-semibold"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            );
+          })}
       </div>
     </div>
   );

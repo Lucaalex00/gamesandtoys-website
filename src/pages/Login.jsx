@@ -13,6 +13,8 @@ export default function Login() {
 
   const location = useLocation();
   const from = location.state?.from?.pathname || "/profile";
+  const reason = new URLSearchParams(location.search).get("reason");
+
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -41,6 +43,14 @@ export default function Login() {
         className="bg-gray-900 p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-700"
       >
         <h2 className="text-2xl font-bold text-center mb-6 tracking-tight">Login</h2>
+        {(reason === "session-expired" || reason === "invalid-token") && (
+          <div className="mb-4 text-red-400 text-center">
+            {reason === "session-expired"
+              ? "La tua sessione è scaduta, per favore accedi di nuovo."
+              : "Token non valido, esegui di nuovo l'accesso."}
+          </div>
+        )}
+
         {error && (
           <div className="mb-4 text-red-400 text-center">{error}</div>
         )}
