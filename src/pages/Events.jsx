@@ -18,6 +18,12 @@ export default function Events() {
   const userCategory = useSelector((state) => state.auth.userCategory);
   const token = localStorage.getItem("token");
 
+  //IMGs MANAGEMENT
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [imageUrlInput, setImageUrlInput] = useState("");
+  const [previewUrl, setPreviewUrl] = useState(null);
+
   const nameRef = useRef();
   const dateRef = useRef();
   const imgRef = useRef();
@@ -40,6 +46,37 @@ export default function Events() {
     }
     fetchData();
   }, [token]);
+
+  // Quando l’admin seleziona un file
+const handleImageSelect = (e) => {
+  setSelectedFile(e.target.files[0]);
+};
+
+// Quando clicca "Carica Immagine"
+const handleUploadImage = async () => {
+  if (!selectedFile) return;
+  setUploading(true);
+  const formData = new FormData();
+  formData.append("image", selectedFile);
+
+  try {
+    const res = await axios.post("/api/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    // path restituito es. "/events/1592837643-miofile.jpg"
+    imgRef.current.value = res.data.path;
+    setSuccessMessage("Immagine caricata con successo!");
+    setTimeout(() => setSuccessMessage(""), 3000);
+  } catch (err) {
+    console.error("Errore nell'upload:", err);
+    setAddError("Errore nel caricamento immagine");
+  } finally {
+    setUploading(false);
+  }
+};
 
   const handleUpdatePoints = async (eventId, userId, delta) => {
     try {
@@ -125,7 +162,7 @@ export default function Events() {
     const newEvent = {
       name: nameRef.current.value.trim(),
       date: dateRef.current.value,
-      img: "/events/" + imgRef.current.value.trim(),
+      img: imgRef.current.value.trim(),
       desc: descRef.current.value.trim(),
     };
 
@@ -197,8 +234,57 @@ export default function Events() {
             className="w-full mb-3 p-2 rounded bg-gray-900 text-white"
           />
           <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageSelect}
+            className="w-full mb-3 p-2 rounded bg-gray-900 text-white"
+          />
+          <button
+            onClick={handleUploadImage}
+            disabled={!selectedFile || uploading}
+            className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition mb-3"
+          >
+            {uploading ? "Caricamento..." : "Carica Immagine"}
+          </button>
+
+              {/* --- LINK ALTERNATIVO --- */}
+              <div className="flex gap-2 items-center mb-3">
+                <input
+                  type="text"
+                  placeholder="oppure incolla un link immagine"
+                  onChange={(e) => setImageUrlInput(e.target.value)}
+                  className="flex-grow p-2 rounded bg-gray-900 text-white"
+                />
+                <button
+                  onClick={() => {
+                    if (!imageUrlInput.startsWith("http")) {
+                      alert("Inserisci un link valido");
+                      return;
+                    }
+                    imgRef.current.value = imageUrlInput;
+                    setPreviewUrl(imageUrlInput);
+                  }}
+                  className="bg-purple-600 px-4 py-2 rounded hover:bg-purple-700 transition"
+                >
+                  Usa link
+                </button>
+              </div>
+
+              {previewUrl && (
+                <div className="mb-3">
+                  <p className="text-sm text-gray-400 mb-1">Anteprima:</p>
+                  <img
+                    src={previewUrl}
+                    alt="Anteprima"
+                    className="max-h-40 rounded-lg border border-gray-600"
+                  />
+                </div>
+              )}
+
+          {/* Campo testo (popolato automaticamente con il path) */}
+          <input
             ref={imgRef}
-            placeholder="Nome File Immagine"
+            placeholder="URL/path immagine"
             className="w-full mb-3 p-2 rounded bg-gray-900 text-white"
           />
           <textarea
@@ -224,7 +310,7 @@ export default function Events() {
           placeholder="Cerca per nome (inizia con...)"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-grow p-3 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 transition"
+          className="flex-grow p-3 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400 transition"
         />
 
         <select

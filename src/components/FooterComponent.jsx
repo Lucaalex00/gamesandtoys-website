@@ -27,8 +27,22 @@ function Footer() {
           {/* Contact & Links */}
           <div className='md:text-end flex flex-col gap-2'>
             <h3 className="text-orange-400 text-lg font-semibold mb-2">Contatti</h3>
-            <p className="text-gray-400 text-xs"> <i className="fa-regular text-gray-300 text-sm fa-envelope-open"></i> Email: <span className='font-bold text-gray-300'> gamesandtoyscanelli@gmail.com </span> </p>
-            <p className="text-gray-400 text-xs"><i className="fa-solid text-gray-300 text-sm fa-phone"></i> Tel:<span className='font-bold text-gray-300'> +39 0123 456789 </span></p>
+            <p className="text-gray-400 text-xs"> <i className="fa-regular text-gray-300 text-sm fa-envelope-open"></i> <span>Email:  </span>  
+              <a
+                href="mailto:gamesandtoyscanelli@gmail.com"
+                className="text-gray-300 hover:text-orange-400 transition text-xs sm:text-sm"
+              >
+                Gamesandtoyscanelli@gmail.com
+              </a> 
+            </p>
+            <p className="text-gray-400 text-xs"><i className="fa-solid text-gray-300 text-sm fa-phone"></i> <span>Tel: </span> 
+              <a
+                href="tel:0141382434"
+                className="text-gray-300 hover:text-orange-400 transition"
+              >
+              0141-382434
+              </a>
+            </p>
           </div>
         </div>
       </footer>
