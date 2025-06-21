@@ -96,7 +96,7 @@ export default function CarouselComponent({ token }) {
               <img
                 src={event.img}
                 alt={event.name}
-                className="h-36 w-full object-cover rounded-t-xl"
+                className="h-auto w-full object-cover rounded-t-xl"
               />
               <div className="flex-1 flex flex-col gap-3 p-4">
                 <h3 className="font-bold text-lg mb-1">{event.name}</h3>

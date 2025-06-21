@@ -10,6 +10,7 @@ export default function Events() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(true);
 
   const [addError, setAddError] = useState("");
@@ -18,15 +19,17 @@ export default function Events() {
   const userCategory = useSelector((state) => state.auth.userCategory);
   const token = localStorage.getItem("token");
 
-  //IMGs MANAGEMENT
+  // Gestione immagine: unico input per nome file o URL
+  const [inputValue, setInputValue] = useState(""); // nome file o URL
   const [selectedFile, setSelectedFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [imageUrlInput, setImageUrlInput] = useState("");
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  const hiddenFileInputRef = useRef(null);
+  const imgRef = useRef(null);
 
   const nameRef = useRef();
   const dateRef = useRef();
-  const imgRef = useRef();
   const descRef = useRef();
 
   useEffect(() => {
@@ -40,6 +43,8 @@ export default function Events() {
         setUsers(resUsers.data);
       } catch (err) {
         console.error("Errore nel caricamento dati:", err);
+        setErrorMessage("Errore nel caricamento dati");
+        setTimeout(() => setErrorMessage(""), 4000);
       } finally {
         setLoading(false);
       }
@@ -47,36 +52,65 @@ export default function Events() {
     fetchData();
   }, [token]);
 
-  // Quando l’admin seleziona un file
-const handleImageSelect = (e) => {
-  setSelectedFile(e.target.files[0]);
-};
+  // Quando clicco sul bottone blu apro file picker
+  const handleClickFilePicker = () => {
+    hiddenFileInputRef.current.click();
+  };
 
-// Quando clicca "Carica Immagine"
-const handleUploadImage = async () => {
-  if (!selectedFile) return;
-  setUploading(true);
-  const formData = new FormData();
-  formData.append("image", selectedFile);
+  // Quando scelgo file
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setInputValue(file.name); // mostra nome file nell'input
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
 
-  try {
-    const res = await axios.post("/api/upload", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    // path restituito es. "/events/1592837643-miofile.jpg"
-    imgRef.current.value = res.data.path;
-    setSuccessMessage("Immagine caricata con successo!");
+  // Carico il file selezionato
+  const handleUploadFile = async () => {
+    if (!selectedFile) {
+      setErrorMessage("Seleziona prima un file");
+      setTimeout(() => setErrorMessage(""), 4000);
+      return;
+    }
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("image", selectedFile);
+
+    try {
+      const res = await axios.post("/api/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      imgRef.current.value = res.data.path;
+      setPreviewUrl(res.data.path);
+      setSuccessMessage("Immagine caricata con successo!");
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (error) {
+      setErrorMessage("Errore nel caricamento immagine");
+      setTimeout(() => setErrorMessage(""), 4000);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Usa link immagine da input
+  const handleUseLink = () => {
+    // Qui modifichiamo il controllo per accettare anche link senza estensione file
+    if (!inputValue.startsWith("http://") && !inputValue.startsWith("https://")) {
+      setErrorMessage("Inserisci un link immagine valido che inizi con http:// o https://");
+      setTimeout(() => setErrorMessage(""), 4000);
+      return;
+    }
+    imgRef.current.value = inputValue;
+    setPreviewUrl(inputValue);
+    setSuccessMessage("Link immagine impostato");
     setTimeout(() => setSuccessMessage(""), 3000);
-  } catch (err) {
-    console.error("Errore nell'upload:", err);
-    setAddError("Errore nel caricamento immagine");
-  } finally {
-    setUploading(false);
-  }
-};
+  };
 
   const handleUpdatePoints = async (eventId, userId, delta) => {
     try {
@@ -105,42 +139,41 @@ const handleUploadImage = async () => {
       );
     } catch (err) {
       console.error("Errore nell'aggiornamento punti:", err);
-      alert("Errore nell'aggiornamento punti");
+      setErrorMessage("Errore nell'aggiornamento punti");
+      setTimeout(() => setErrorMessage(""), 4000);
     }
   };
 
-  const handleSaveEdit = async (eventId, newDesc, participantIds, newImg) => {
-  try {
-    const response = await axios.put(
-      `/api/events/${eventId}`,
-      {
-        desc: newDesc,
-        participants: participantIds.map((userId) => ({ userId })),
-        img: newImg, // aggiungi immagine qui
-      },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+  const handleSaveEdit = async (eventId, newDesc, participantIds, newImg, newDate) => {
+    try {
+      const response = await axios.put(
+        `/api/events/${eventId}`,
+        {
+          desc: newDesc,
+          participants: participantIds.map((userId) => ({ userId })),
+          img: newImg,
+          date: newDate,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    const updatedEvent = response.data.updatedEvent;
-    updatedEvent.participants.sort((a, b) => b.points - a.points);
+      const updatedEvent = response.data.updatedEvent;
+      updatedEvent.participants.sort((a, b) => b.points - a.points);
 
-    setEvents((prevEvents) =>
-      prevEvents.map((ev) => (ev._id === eventId ? updatedEvent : ev))
-    );
+      setEvents((prevEvents) =>
+        prevEvents.map((ev) => (ev._id === eventId ? updatedEvent : ev))
+      );
 
-    setSuccessMessage(response.data.message || "Evento aggiornato!");
-    setTimeout(() => setSuccessMessage(""), 3000);
-  } catch (err) {
-    console.error("Errore nel salvataggio evento:", err);
-    alert("Errore nel salvataggio evento");
-  }
-};
+      setSuccessMessage(response.data.message || "Evento aggiornato!");
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (err) {
+      console.error("Errore nel salvataggio evento:", err);
+      setErrorMessage("Errore nel salvataggio evento");
+      setTimeout(() => setErrorMessage(""), 4000);
+    }
+  };
 
-  // Nuova funzione per eliminare un evento
   const handleDeleteEvent = async (eventId) => {
-    const confirmDelete = window.confirm("Sei sicuro di voler eliminare questo evento?");
-    if (!confirmDelete) return;
-
     try {
       await axios.delete(`/api/events/${eventId}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -151,7 +184,8 @@ const handleUploadImage = async () => {
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       console.error("Errore nella cancellazione:", err);
-      alert("Errore nell'eliminazione dell'evento");
+      setErrorMessage("Errore nell'eliminazione dell'evento");
+      setTimeout(() => setErrorMessage(""), 4000);
     }
   };
 
@@ -178,11 +212,14 @@ const handleUploadImage = async () => {
       });
       setEvents((prev) => [...prev, res.data.event]);
 
-      // Reset form
+      // Reset form e reset input immagine
       nameRef.current.value = "";
       dateRef.current.value = "";
-      imgRef.current.value = "";
       descRef.current.value = "";
+      imgRef.current.value = "";
+      setInputValue("");
+      setSelectedFile(null);
+      setPreviewUrl(null);
 
       setSuccessMessage("Evento creato con successo!");
       setTimeout(() => setSuccessMessage(""), 3000);
@@ -220,9 +257,20 @@ const handleUploadImage = async () => {
     <div className="min-h-screen px-4 py-8 text-white bg-[#0d0d0d]">
       <h1 className="text-4xl font-extrabold text-center mb-10 tracking-wide">Eventi</h1>
 
+      {/* Messaggi generali di errore e successo */}
+      <div className="max-w-5xl mx-auto mb-6">
+        {errorMessage && (
+          <div className="p-3 bg-red-600 rounded text-white text-center">{errorMessage}</div>
+        )}
+        {successMessage && (
+          <div className="p-3 bg-green-600 rounded text-white text-center">{successMessage}</div>
+        )}
+      </div>
+
       {userCategory === "admin" && (
         <div className="max-w-5xl mx-auto bg-gray-800 p-6 rounded-lg mb-10">
           <h2 className="text-2xl font-semibold mb-4">Aggiungi nuovo evento</h2>
+
           <input
             ref={nameRef}
             placeholder="Nome evento"
@@ -233,60 +281,62 @@ const handleUploadImage = async () => {
             type="date"
             className="w-full mb-3 p-2 rounded bg-gray-900 text-white"
           />
+
+          {/* INPUT UNICO per nome file o URL immagine */}
+          <input
+            type="text"
+            placeholder="Nome file o URL immagine"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            className="w-full mb-3 p-2 rounded bg-gray-900 text-white"
+          />
+
+          {/* input file nascosto */}
           <input
             type="file"
             accept="image/*"
-            onChange={handleImageSelect}
-            className="w-full mb-3 p-2 rounded bg-gray-900 text-white"
+            ref={hiddenFileInputRef}
+            style={{ display: "none" }}
+            onChange={handleFileChange}
           />
-          <button
-            onClick={handleUploadImage}
-            disabled={!selectedFile || uploading}
-            className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition mb-3"
-          >
-            {uploading ? "Caricamento..." : "Carica Immagine"}
-          </button>
 
-              {/* --- LINK ALTERNATIVO --- */}
-              <div className="flex gap-2 items-center mb-3">
-                <input
-                  type="text"
-                  placeholder="oppure incolla un link immagine"
-                  onChange={(e) => setImageUrlInput(e.target.value)}
-                  className="flex-grow p-2 rounded bg-gray-900 text-white"
-                />
-                <button
-                  onClick={() => {
-                    if (!imageUrlInput.startsWith("http")) {
-                      alert("Inserisci un link valido");
-                      return;
-                    }
-                    imgRef.current.value = imageUrlInput;
-                    setPreviewUrl(imageUrlInput);
-                  }}
-                  className="bg-purple-600 px-4 py-2 rounded hover:bg-purple-700 transition"
-                >
-                  Usa link
-                </button>
-              </div>
+          <div className="flex gap-3 mb-4">
+            <button
+              onClick={() => {
+                if (selectedFile) {
+                  handleUploadFile();
+                } else {
+                  handleClickFilePicker();
+                }
+              }}
+              className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition"
+              disabled={uploading}
+            >
+              {uploading ? "Caricamento..." : "Carica da file"}
+            </button>
 
-              {previewUrl && (
-                <div className="mb-3">
-                  <p className="text-sm text-gray-400 mb-1">Anteprima:</p>
-                  <img
-                    src={previewUrl}
-                    alt="Anteprima"
-                    className="max-h-40 rounded-lg border border-gray-600"
-                  />
-                </div>
-              )}
+            <button
+              onClick={handleUseLink}
+              className="bg-purple-600 px-4 py-2 rounded hover:bg-purple-700 transition"
+            >
+              Usa link
+            </button>
+          </div>
 
-          {/* Campo testo (popolato automaticamente con il path) */}
-          <input
-            ref={imgRef}
-            placeholder="URL/path immagine"
-            className="w-full mb-3 p-2 rounded bg-gray-900 text-white"
-          />
+          {previewUrl && (
+            <div className="mb-3">
+              <p className="text-sm text-gray-400 mb-1">Anteprima:</p>
+              <img
+                src={previewUrl}
+                alt="Anteprima immagine"
+                className="max-h-40 rounded-lg border border-gray-600"
+              />
+            </div>
+          )}
+
+          {/* input nascosto dove mettiamo il valore finale immagine */}
+          <input type="hidden" ref={imgRef} />
+
           <textarea
             ref={descRef}
             placeholder="Descrizione"
@@ -310,19 +360,12 @@ const handleUploadImage = async () => {
           placeholder="Cerca per nome (inizia con...)"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-grow p-3 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400 transition"
+          className="flex-grow p-2 rounded bg-gray-900 text-white"
         />
-
         <select
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className={`p-3 rounded-lg bg-gray-800 border border-gray-700 cursor-pointer focus:outline-none focus:ring-1 transition duration-400 ${
-            filter === "future"
-              ? "border-green-400"
-              : filter === "past"
-              ? "border-red-400"
-              : "border-white"
-          }`}
+          className="p-2 rounded bg-gray-900 text-white sm:max-w-xs"
         >
           <option value="all">Tutti</option>
           <option value="future">Futuri</option>
@@ -330,31 +373,22 @@ const handleUploadImage = async () => {
         </select>
       </div>
 
-      {userCategory === "admin" && successMessage && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 max-w-4xl w-1/3 bg-green-600 text-white text-center py-2 rounded-lg shadow-lg">
-          {successMessage}
-        </div>
-      )}
+      <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-6 px-2">
 
-      <div className="max-w-5xl mx-auto space-y-8 px-3">
-        {filteredEvents.length > 0 ? (
-          filteredEvents.map((event) => (
-            <EventCard
-              key={event._id}
-              event={event}
-              users={users}
-              userCategory={userCategory}
-              token={token}
-              onUpdatePoints={handleUpdatePoints}
-              onSaveEdit={handleSaveEdit}
-              onDeleteEvent={handleDeleteEvent} 
-            />
-          ))
-        ) : (
-          <p className="text-center text-gray-400 bg-gray-800 rounded-lg p-6">
-            Nessun evento trovato.
-          </p>
+        {filteredEvents.length === 0 && (
+          <p className="text-center text-gray-400 col-span-full">Nessun evento trovato</p>
         )}
+        {filteredEvents.map((event) => (
+          <EventCard
+            key={event._id}
+            event={event}
+            users={users}
+            onUpdatePoints={handleUpdatePoints}
+            onSaveEdit={handleSaveEdit}
+            onDeleteEvent={handleDeleteEvent}
+            userCategory={userCategory}
+          />
+        ))}
       </div>
     </div>
   );

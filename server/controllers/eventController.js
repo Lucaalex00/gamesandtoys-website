@@ -50,6 +50,11 @@ export const updateEvent = async (req, res) => {
     if (req.body.desc) {
       event.desc = req.body.desc;
     }
+
+    // aggiorna la data se fornita
+    if (req.body.date) {
+      event.date = new Date(req.body.date);
+    }
     
     if (req.body.img) {
       event.img = req.body.img;
@@ -59,12 +64,10 @@ export const updateEvent = async (req, res) => {
     if (Array.isArray(req.body.participants)) {
       const existing = event.participants || [];
 
-      // Crea una mappa esistenti per accesso rapido
       const existingMap = new Map(
         existing.map((p) => [p.userId.toString(), p.points])
       );
 
-      // Nuova lista con merge
       event.participants = req.body.participants.map((p) => ({
         userId: p.userId,
         points: existingMap.get(p.userId.toString()) ?? 0,
@@ -78,6 +81,7 @@ export const updateEvent = async (req, res) => {
     res.status(500).json({ message: "Errore nell'aggiornamento dell'evento" });
   }
 };
+
 
 // DELETE /api/events/:id
 export const deleteEvent = async (req, res) => {
