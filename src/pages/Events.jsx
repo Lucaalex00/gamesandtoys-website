@@ -24,10 +24,11 @@ export default function Events() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
-
   const hiddenFileInputRef = useRef(null);
-  const imgRef = useRef(null);
+  const [imageReadyToConfirm, setImageReadyToConfirm] = useState(false);
 
+
+  const imgRef = useRef(null);
   const nameRef = useRef();
   const dateRef = useRef();
   const descRef = useRef();
@@ -52,65 +53,88 @@ export default function Events() {
     fetchData();
   }, [token]);
 
+  useEffect(() => {
+    return () => {
+      if (previewUrl && previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
+
   // Quando clicco sul bottone blu apro file picker
   const handleClickFilePicker = () => {
     hiddenFileInputRef.current.click();
   };
 
-  // Quando scelgo file
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      setInputValue(file.name); // mostra nome file nell'input
-      setPreviewUrl(URL.createObjectURL(file));
+ const handleFileChange = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    if (previewUrl && previewUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(previewUrl);
     }
-  };
+    setSelectedFile(file);
+    setInputValue(file.name);
+    setImageReadyToConfirm(false); // reset stato conferma
+    const newPreviewUrl = URL.createObjectURL(file);
+    setPreviewUrl(newPreviewUrl);
+
+    if (imgRef.current) imgRef.current.value = "";
+  }
+};
+
+  
 
   // Carico il file selezionato
   const handleUploadFile = async () => {
-    if (!selectedFile) {
-      setErrorMessage("Seleziona prima un file");
-      setTimeout(() => setErrorMessage(""), 4000);
-      return;
-    }
+  if (!selectedFile) {
+    setErrorMessage("Seleziona prima un file");
+    setTimeout(() => setErrorMessage(""), 4000);
+    return;
+  }
 
-    setUploading(true);
-    const formData = new FormData();
-    formData.append("image", selectedFile);
+  setUploading(true);
+  setImageReadyToConfirm(false); // resetta stato
 
-    try {
-      const res = await axios.post("/api/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      imgRef.current.value = res.data.path;
-      setPreviewUrl(res.data.path);
-      setSuccessMessage("Immagine caricata con successo!");
-      setTimeout(() => setSuccessMessage(""), 3000);
-    } catch (error) {
-      setErrorMessage("Errore nel caricamento immagine");
-      setTimeout(() => setErrorMessage(""), 4000);
-    } finally {
-      setUploading(false);
-    }
-  };
+  const formData = new FormData();
+  formData.append("image", selectedFile);
+
+  try {
+    const res = await axios.post("/api/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    imgRef.current.value = res.data.imagePath;
+    setPreviewUrl(res.data.imagePath);
+    setSuccessMessage("Immagine caricata con successo!");
+    setImageReadyToConfirm(true); // immagine pronta
+    setTimeout(() => setSuccessMessage(""), 3000);
+  } catch (error) {
+    setErrorMessage("Errore nel caricamento immagine");
+    setTimeout(() => setErrorMessage(""), 4000);
+  } finally {
+    setUploading(false);
+  }
+};
+
 
   // Usa link immagine da input
-  const handleUseLink = () => {
-    // Qui modifichiamo il controllo per accettare anche link senza estensione file
-    if (!inputValue.startsWith("http://") && !inputValue.startsWith("https://")) {
-      setErrorMessage("Inserisci un link immagine valido che inizi con http:// o https://");
-      setTimeout(() => setErrorMessage(""), 4000);
-      return;
-    }
-    imgRef.current.value = inputValue;
-    setPreviewUrl(inputValue);
-    setSuccessMessage("Link immagine impostato");
-    setTimeout(() => setSuccessMessage(""), 3000);
-  };
+ const handleUseLink = () => {
+  if (!inputValue.startsWith("http://") && !inputValue.startsWith("https://")) {
+    setErrorMessage("Inserisci un link immagine valido che inizi con http:// o https://");
+    setTimeout(() => setErrorMessage(""), 4000);
+    return;
+  }
+  imgRef.current.value = inputValue;
+  setPreviewUrl(inputValue);
+  setSelectedFile(null); // resetto file selezionato
+  setImageReadyToConfirm(false);
+  setSuccessMessage("Link immagine impostato");
+  setTimeout(() => setSuccessMessage(""), 3000);
+};
 
   const handleUpdatePoints = async (eventId, userId, delta) => {
     try {
@@ -190,13 +214,31 @@ export default function Events() {
   };
 
   const handleAddEvent = async () => {
-    setAddError("");
-    setAdding(true);
+  setAddError("");
+  setAdding(true);
+
+  try {
+    let imagePath = imgRef.current.value.trim();
+
+    // Se c'è un file selezionato, fai l'upload prima di salvare evento
+    if (selectedFile) {
+      const formData = new FormData();
+      formData.append("image", selectedFile);
+
+      const resUpload = await axios.post("/api/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      imagePath = resUpload.data.imagePath;
+    }
 
     const newEvent = {
       name: nameRef.current.value.trim(),
       date: dateRef.current.value,
-      img: imgRef.current.value.trim(),
+      img: imagePath,
       desc: descRef.current.value.trim(),
     };
 
@@ -206,30 +248,32 @@ export default function Events() {
       return;
     }
 
-    try {
-      const res = await axios.post("/api/events", newEvent, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setEvents((prev) => [...prev, res.data.event]);
+    const res = await axios.post("/api/events", newEvent, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-      // Reset form e reset input immagine
-      nameRef.current.value = "";
-      dateRef.current.value = "";
-      descRef.current.value = "";
-      imgRef.current.value = "";
-      setInputValue("");
-      setSelectedFile(null);
-      setPreviewUrl(null);
+    setEvents((prev) => [...prev, res.data.event]);
 
-      setSuccessMessage("Evento creato con successo!");
-      setTimeout(() => setSuccessMessage(""), 3000);
-    } catch (err) {
-      console.error("Errore nell'aggiunta evento:", err);
-      setAddError("Errore nel creare evento");
-    } finally {
-      setAdding(false);
-    }
-  };
+    // Reset form e stato immagini
+    nameRef.current.value = "";
+    dateRef.current.value = "";
+    descRef.current.value = "";
+    imgRef.current.value = "";
+    setInputValue("");
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setImageReadyToConfirm(false);
+
+    setSuccessMessage("Evento creato con successo!");
+    setTimeout(() => setSuccessMessage(""), 3000);
+
+  } catch (err) {
+    console.error("Errore nell'aggiunta evento:", err);
+    setAddError("Errore nel creare evento");
+  } finally {
+    setAdding(false);
+  }
+};
 
   const now = new Date();
   const searchLower = search.toLowerCase();
@@ -300,28 +344,36 @@ export default function Events() {
             onChange={handleFileChange}
           />
 
-          <div className="flex gap-3 mb-4">
+         <div className="flex gap-3 mb-4">
+          {previewUrl && (
             <button
               onClick={() => {
-                if (selectedFile) {
-                  handleUploadFile();
-                } else {
-                  handleClickFilePicker();
-                }
+                setInputValue("");
+                setSelectedFile(null);
+                setPreviewUrl(null);
+                setImageReadyToConfirm(false);
+                if (imgRef.current) imgRef.current.value = "";
               }}
-              className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition"
-              disabled={uploading}
+              className="bg-red-600 px-4 py-2 rounded hover:bg-red-700 transition"
             >
-              {uploading ? "Caricamento..." : "Carica da file"}
+              Reset Immagine
             </button>
+          )}
 
-            <button
-              onClick={handleUseLink}
-              className="bg-purple-600 px-4 py-2 rounded hover:bg-purple-700 transition"
-            >
-              Usa link
-            </button>
-          </div>
+          <button
+            onClick={handleClickFilePicker}
+            className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition"
+          >
+            Seleziona file
+          </button>
+
+          <button
+            onClick={handleUseLink}
+            className="bg-purple-600 px-4 py-2 rounded hover:bg-purple-700 transition"
+          >
+            Usa link
+          </button>
+        </div>
 
           {previewUrl && (
             <div className="mb-3">

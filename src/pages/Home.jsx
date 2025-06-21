@@ -19,7 +19,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="bg-[#0d0d0d] min-h-screen px-4 sm:px-6 py-10 font-sans text-[#f3e6d8] relative overflow-x-hidden">
+    <div className="bg-[#0d0d0d] min-h-screen px-4 sm:px-6 py-20 font-sans text-[#f3e6d8] relative overflow-x-hidden">
       {/* Hero */}
       <motion.div
         initial={{ opacity: 0, y: -40 }}
@@ -59,6 +59,7 @@ export default function Home() {
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.8 }}
+        className=""
       >
         <h2 className="text-center text-4xl font-bold mb-10 drop-shadow-[0_0_10px_rgba(255,106,0,0.7)]">
           Eventi in evidenza

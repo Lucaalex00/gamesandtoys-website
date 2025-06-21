@@ -5,6 +5,7 @@ import cors from "cors";
 import eventsRoutes from "./routes/eventRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import uploadRoutes from "./routes/uploadRoutes.js"
 
 import path from "path";
 import { fileURLToPath } from "url";
@@ -44,6 +45,14 @@ app.use("/api/auth", authRoutes);
 
 console.log("Carico /api/users");
 app.use("/api/users", userRoutes);
+
+// Serve i file statici dalla cartella 'public/uploads'
+console.log("Carico /uploads");
+app.use("/uploads", express.static(path.join(__dirname, "..", "src", "public", "uploads")));
+
+// Aggiungi la rotta API per gestire l'upload dei file
+console.log("Carico /api/upload");
+app.use("/api/upload", uploadRoutes);
 
 console.log("Carico static frontend...");
 

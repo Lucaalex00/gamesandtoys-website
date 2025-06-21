@@ -80,6 +80,7 @@ export const updateEvent = async (req, res) => {
     console.error("Errore aggiornamento evento:", error);
     res.status(500).json({ message: "Errore nell'aggiornamento dell'evento" });
   }
+
 };
 
 
