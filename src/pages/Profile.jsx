@@ -1,4 +1,5 @@
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
@@ -9,6 +10,8 @@ export default function Profile() {
   const { token } = useSelector((state) => state.auth);
   const [userData, setUserData] = useState({});
   const [error, setError] = useState("");
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -19,6 +22,10 @@ export default function Profile() {
         setUserData(res.data);
       } catch (err) {
         setError("Errore  : Prova con Logout e Login");
+        if (err.response?.data?.forceLogout) {
+          localStorage.removeItem("token");
+          navigate("/login");
+      }
         console.error(err);
       }
     };

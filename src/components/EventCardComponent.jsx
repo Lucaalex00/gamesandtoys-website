@@ -99,6 +99,15 @@ export default function EventCard({
       transition={{ duration: 0.4 }}
       className="bg-gray-800 p-6 rounded-xl border-4 border-gray-700 shadow-lg relative max-w-full"
     >
+
+          <button
+        onClick={() => setShowConfirmDelete(true)}
+        className="absolute top-2 right-2 text-red-500 hover:text-red-700 w-8 h-8 flex items-center justify-center transition-colors duration-200"
+        title="Elimina evento"
+      >
+        X
+      </button>
+
       {/* Titolo evento */}
       <h2 className="text-2xl font-semibold mb-2 break-words">{event.name}</h2>
 

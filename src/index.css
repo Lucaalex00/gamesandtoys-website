@@ -34,3 +34,7 @@
   width: 14px;
   height: 14px;
 }
+
+.swiper-wrapper{
+  justify-content: space-around;
+}

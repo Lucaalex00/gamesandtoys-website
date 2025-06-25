@@ -66,7 +66,7 @@ export default function Home() {
         </h2>
 
         {checkingLogin ? (
-          <div className="text-center text-orange-400 text-lg font-semibold">
+          <div className="text-center flex justify-center text-orange-400 text-lg font-semibold">
             Controllo accesso...
           </div>
         ) : isLoggedIn ? (

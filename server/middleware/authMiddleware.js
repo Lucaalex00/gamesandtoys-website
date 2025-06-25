@@ -15,7 +15,7 @@ const protect = async (req, res, next) => {
       const user = await User.findById(decoded.id).select("-password");
 
       if (!user) {
-        return res.status(401).json({ message: "Utente non trovato" });
+        return res.status(401).json({ message: "Utente non trovato", forceLogout:true });
       }
 
       req.user = user; // Ora hai accesso a tutto: _id, email, category, name...
@@ -24,10 +24,11 @@ const protect = async (req, res, next) => {
     } catch (error) {
       return res
         .status(401)
-        .json({ message: "Non autorizzato, token non valido: " + error });
+        .json({ message: "Non autorizzato, token non valido: " + error, forceLogout:true });
+      
     }
   } else {
-    return res.status(401).json({ message: "Token mancante" });
+    return res.status(401).json({ message: "Token mancante", forceLogout:true });
   }
 };
 

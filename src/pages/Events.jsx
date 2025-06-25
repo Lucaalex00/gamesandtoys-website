@@ -3,6 +3,7 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 import EventCard from "../components/EventCardComponent";
 import SpinnerComponent from "../components/SpinnerComponent";
+import { useNavigate } from "react-router-dom";
 
 export default function Events() {
   const [events, setEvents] = useState([]);
@@ -18,6 +19,7 @@ export default function Events() {
 
   const userCategory = useSelector((state) => state.auth.userCategory);
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
 
   // Gestione immagine: unico input per nome file o URL
   const [inputValue, setInputValue] = useState(""); // nome file o URL
@@ -45,6 +47,10 @@ export default function Events() {
       } catch (err) {
         console.error("Errore nel caricamento dati:", err);
         setErrorMessage("Errore nel caricamento dati");
+        if (err.response?.data?.forceLogout) {
+          localStorage.removeItem("token");
+          navigate("/login");
+        }
         setTimeout(() => setErrorMessage(""), 4000);
       } finally {
         setLoading(false);
