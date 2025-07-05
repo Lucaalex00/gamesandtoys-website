@@ -23,6 +23,10 @@ export default function AdminUserList() {
   // Stato per gestire quali accordion sono aperti (id utenti)
   const [openUserIds, setOpenUserIds] = useState([]);
 
+  //Note Si/No
+  const [noteVisibleIds, setNoteVisibleIds] = useState([]);
+
+
   // Chiamata API per caricare tutti gli utenti
   const fetchUsers = async () => {
     try {
@@ -42,12 +46,13 @@ export default function AdminUserList() {
   }, [token]);
 
   // Gestione modifiche input (nome, email, ecc.)
-  const handleInputChange = (index, field, value) => {
-    const updated = [...users];
-    updated[index][field] = value;
-    setUsers(updated);
-  };
-
+  const handleInputChange = (userId, field, value) => {
+  setUsers((prevUsers) =>
+    prevUsers.map((user) =>
+      user._id === userId ? { ...user, [field]: value } : user
+    )
+  );
+};
   // Gestione modifica campo password per utente
   const handleResetPasswordChange = (userId, value) => {
     setResetPasswords((prev) => ({ ...prev, [userId]: value }));
@@ -56,14 +61,16 @@ export default function AdminUserList() {
   // Salva le modifiche fatte a un utente
   const handleSave = async (user) => {
     try {
-      const { _id, name, email, category, credito } = user;
+      const { _id, name, email, category, credito, note } = user;
       await axios.put(
         `/api/users/${_id}`,
-        { name, email, category, credito },
+        { name, email, category, credito, note },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSuccessMessage("Utente aggiornato correttamente");
       setTimeout(() => setSuccessMessage(""), 2000);
+      await fetchUsers();
+      console.log(note);
     } catch (err) {
       console.error(err);
       setError("Errore durante il salvataggio");
@@ -100,6 +107,15 @@ export default function AdminUserList() {
     );
   };
 
+  const toggleNoteVisibility = (userId) => {
+  setNoteVisibleIds((prev) =>
+    prev.includes(userId)
+      ? prev.filter((id) => id !== userId)
+      : [...prev, userId]
+  );
+};
+
+
   return (
     <div className="min-h-full px-6 bg-[#0d0d0d] text-white">
       {/* Titolo */}
@@ -122,123 +138,142 @@ export default function AdminUserList() {
 
       {/* Lista utenti filtrati */}
       <div className="space-y-4 overflow-auto h-[500px] sm:min-h-screen">
-        {users
-          .filter((user) =>
+        {users.map((user) => {
+          // Filtro direttamente dentro la map
+          const match =
             user.name.toLowerCase().startsWith(searchQuery.toLowerCase()) ||
-            user.email.toLowerCase().startsWith(searchQuery.toLowerCase())
-          )
+            user.email.toLowerCase().startsWith(searchQuery.toLowerCase());
 
-          .map((user, index) => {
-            const isOpen = openUserIds.includes(user._id);
+          if (!match) return null;
 
-            return (
-              <div
-                key={user._id}
-                className="bg-gray-900 rounded-xl border border-gray-700"
+          const isOpen = openUserIds.includes(user._id);
+
+          return (
+            <div
+              key={user._id}
+              className="bg-gray-900 rounded-xl border border-gray-700"
+            >
+              {/* Intestazione accordion */}
+              <button
+                onClick={() => toggleAccordion(user._id)}
+                className="w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 rounded-t-xl flex justify-between items-center"
               >
-                {/* Intestazione accordion (cliccabile) */}
-                <button
-                  onClick={() => toggleAccordion(user._id)}
-                  className="w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 rounded-t-xl flex justify-between items-center"
-                >
-                  <span className="text-lg font-semibold">
-                    {user.name} ({user.email})
-                  </span>
-                  <span className="text-sm text-gray-400">
-                    {isOpen ? "▲" : "▼"}
-                  </span>
-                </button>
+                <span className="text-lg font-semibold">
+                  {user.name} ({user.email})
+                </span>
+                <span className="text-sm text-gray-400">{isOpen ? "▲" : "▼"}</span>
+              </button>
 
-                {/* Corpo accordion animato */}
-                <motion.div
-                  initial={false}
-                  animate={{ height: isOpen ? "auto" : 0, opacity: isOpen ? 1 : 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="overflow-hidden"
-                >
-                  <div className="p-4 space-y-4">
-                    {/* Campi modificabili */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm text-gray-400">Nome</label>
-                        <input
-                          className="w-full p-2 bg-gray-800 border border-gray-600 rounded"
-                          value={user.name}
-                          onChange={(e) =>
-                            handleInputChange(index, "name", e.target.value)
-                          }
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm text-gray-400">Email</label>
-                        <input
-                          className="w-full p-2 bg-gray-800 border border-gray-600 rounded"
-                          value={user.email}
-                          onChange={(e) =>
-                            handleInputChange(index, "email", e.target.value)
-                          }
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm text-gray-400">Categoria</label>
-                        <select
-                          className="w-full p-2 bg-gray-800 border border-gray-600 rounded"
-                          value={user.category}
-                          onChange={(e) =>
-                            handleInputChange(index, "category", e.target.value)
-                          }
-                        >
-                          <option value="user">user</option>
-                          <option value="admin">admin</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-sm text-gray-400">Credito (€)</label>
-                        <input
-                          type="number"
-                          className="w-full p-2 bg-gray-800 border border-gray-600 rounded"
-                          value={user.credito}
-                          onChange={(e) =>
-                            handleInputChange(index, "credito", Number(e.target.value))
-                          }
-                        />
-                      </div>
-                    </div>
-
-                    {/* Pulsante salvataggio */}
-                    <button
-                      onClick={() => handleSave(user)}
-                      className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white font-semibold"
-                    >
-                      Salva modifiche
-                    </button>
-
-                    {/* Sezione reset password */}
-                    <div className="mt-4">
-                      <label className="text-sm text-gray-400 mr-2">
-                        Reset Password
-                      </label>
+              {/* Corpo accordion */}
+              <motion.div
+                initial={false}
+                animate={{ height: isOpen ? "auto" : 0, opacity: isOpen ? 1 : 0 }}
+                transition={{ duration: 0.3 }}
+                className="overflow-hidden relative py-3"
+              >
+                <div className="p-4 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm text-gray-400">Nome</label>
                       <input
-                        type="password"
-                        placeholder="Nuova password"
-                        className="p-2 bg-gray-800 border border-gray-600 rounded mr-2"
-                        value={resetPasswords[user._id] || ""}
+                        className="w-full p-2 bg-gray-800 border border-gray-600 rounded"
+                        value={user.name}
                         onChange={(e) =>
-                          handleResetPasswordChange(user._id, e.target.value)
+                          handleInputChange(user._id, "name", e.target.value)
                         }
                       />
-                      <button
-                        onClick={() => handleResetPassword(user._id)}
-                        className="px-3 py-2 bg-red-600 hover:bg-red-700 rounded text-white font-semibold"
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-400">Email</label>
+                      <input
+                        className="w-full p-2 bg-gray-800 border border-gray-600 rounded"
+                        value={user.email}
+                        onChange={(e) =>
+                          handleInputChange(user._id, "email", e.target.value)
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-400">Categoria</label>
+                      <select
+                        className="w-full p-2 bg-gray-800 border border-gray-600 rounded"
+                        value={user.category}
+                        onChange={(e) =>
+                          handleInputChange(user._id, "category", e.target.value)
+                        }
                       >
-                        Reset
-                      </button>
+                        <option value="user">user</option>
+                        <option value="admin">admin</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-400">Credito (€)</label>
+                      <input
+                        type="number"
+                        className="w-full p-2 bg-gray-800 border border-gray-600 rounded"
+                        value={user.credito}
+                        onChange={(e) =>
+                          handleInputChange(user._id, "credito", Number(e.target.value))
+                        }
+                      />
                     </div>
                   </div>
-                </motion.div>
-              </div>
-            );
-          })}
+
+                  {/* Pulsante salvataggio */}
+                  <button
+                    onClick={() => handleSave(user)}
+                    className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white font-semibold"
+                  >
+                    Salva modifiche
+                  </button>
+
+                  {/* Reset password */}
+                  <div className="mt-4">
+                    <label className="text-sm text-gray-400 mr-2">
+                      Reset Password
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="Nuova password"
+                      className="p-2 bg-gray-800 border border-gray-600 rounded mr-2"
+                      value={resetPasswords[user._id] || ""}
+                      onChange={(e) =>
+                        handleResetPasswordChange(user._id, e.target.value)
+                      }
+                    />
+                    <button
+                      onClick={() => handleResetPassword(user._id)}
+                      className="px-3 py-2 bg-red-600 hover:bg-red-700 rounded text-white font-semibold"
+                    >
+                      Reset
+                    </button>
+                  </div>
+                </div>
+                {/* NOTE in basso a destra */}
+                <div className="absolute bottom-0 right-1 w-32 sm:w-64">
+                  <div className="flex items-center justify-end gap-3 mb-1">
+                    <label className="text-sm text-gray-700 font-semibold">Note</label>
+                    <button
+                      onClick={() => toggleNoteVisibility(user._id)}
+                      className="text-xs text-blue-500 hover:underline"
+                    >
+                      {noteVisibleIds.includes(user._id) ? "Nascondi" : "Mostra"}
+                    </button>
+                  </div>
+
+                  {noteVisibleIds.includes(user._id) && (
+                    <textarea
+                      rows={3}
+                      className="w-full p-2 text-center rounded bg-yellow-200 text-black border border-yellow-400 focus:outline-none resize-none"
+                      value={user.note || ""}
+                      onChange={(e) => handleInputChange(user._id, "note", e.target.value)}
+                    />
+                  )}
+                </div>
+              </motion.div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

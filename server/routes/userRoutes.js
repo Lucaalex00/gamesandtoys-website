@@ -8,14 +8,14 @@ const router = express.Router();
 // GET /api/users => ritorna la lista di tutti gli utenti
 router.get("/", protect, async (req, res) => {
   try {
-    const users = await User.find({}, "_id name email category credito"); // scegli i campi da mostrare
+    const users = await User.find({}, "_id name email category credito note"); // scegli i campi da mostrare
     res.json(users);
   } catch (err) {
     res.status(500).json({ message: "Errore interno" });
   }
 });
 
-// PUT /api/users/:id => aggiorna nome, email, categoria e credito (solo admin)
+// PUT /api/users/:id => aggiorna nome, email, categoria e credito e note (solo admin)
 router.put("/:id", protect, async (req, res) => {
   try {
     if (req.user.category !== "admin") {
@@ -23,8 +23,8 @@ router.put("/:id", protect, async (req, res) => {
     }
 
     const { id } = req.params;
-    const { name, email, category, credito } = req.body;
-
+    const { name, email, category, credito, note } = req.body;
+    console.log(name, email, category, credito, note);
     const user = await User.findById(id);
     if (!user) return res.status(404).json({ message: "Utente non trovato" });
 
@@ -32,6 +32,8 @@ router.put("/:id", protect, async (req, res) => {
     if (email !== undefined) user.email = email;
     if (category !== undefined) user.category = category;
     if (credito !== undefined) user.credito = credito;
+    if (note !== undefined) user.note = note;
+
 
     await user.save();
     res.status(200).json({ message: "Utente aggiornato" });

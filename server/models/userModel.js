@@ -25,6 +25,7 @@ const userSchema = new mongoose.Schema({
     default: "user", // default per chi si registra
   },
   credito: { type: Number, default: 0 }, // campo credito aggiunto
+  note: { type: String, default: "NOTE" }, // campo note aggiunto
 });
 
 // Cifra la password prima di salvare
