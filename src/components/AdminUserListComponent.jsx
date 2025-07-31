@@ -142,7 +142,8 @@ export default function AdminUserList() {
           // Filtro direttamente dentro la map
           const match =
             user.name.toLowerCase().startsWith(searchQuery.toLowerCase()) ||
-            user.email.toLowerCase().startsWith(searchQuery.toLowerCase());
+            user.email.toLowerCase().startsWith(searchQuery.toLowerCase()) ||
+            user.note.toLowerCase().startsWith(searchQuery.toLowerCase());
 
           if (!match) return null;
 
